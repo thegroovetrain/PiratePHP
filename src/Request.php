@@ -69,4 +69,10 @@ class Request implements RequestInterface
     {
         return $this->serverData;
     }
+
+    
+    public function getServerData(string $key, $default=null):mixed
+    {
+        return $this->serverData[$key] ?? $default;
+    }
 }

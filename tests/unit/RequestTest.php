@@ -79,4 +79,19 @@ final class RequestTest extends MockeryTestCase
         $this->assertSame($_SERVER, $this->request->getAllServerData());
         $this->assertSame(count($_SERVER), count($this->request->getAllServerData()));
     }
+
+
+    public function testGetServerData():void
+    {
+        $expected = [
+            'REQUEST_METHOD' => 'GET',
+            'REQUEST_URI' => '/foo/bar',
+            'HTTP_BAZ' => null,
+        ];
+        foreach($expected as $key => $expectedValue) {
+            $this->assertSame($expectedValue, $this->request->getServerData($key));
+        }
+        // test default
+        $this->assertSame('', $this->request->getServerData('HTTP_BAT', ''));
+    }
 }
