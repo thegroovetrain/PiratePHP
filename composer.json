@@ -1,0 +1,23 @@
+{
+    "name": "ericseibt/piratephp",
+    "description": "lightweight php web framework",
+    "type": "library",
+    "require": {
+        "psr/http-message": "^2.0"
+    },
+    "license": "GPlv3",
+    "autoload": {
+        "psr-4": {
+            "EricSeibt\\PiratePHP\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Eric Seibt"
+        }
+    ],
+    "require-dev": {
+        "phpunit/phpunit": "^10",
+        "mockery/mockery": "^1.6"
+    }
+}
