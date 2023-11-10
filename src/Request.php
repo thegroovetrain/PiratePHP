@@ -16,7 +16,6 @@ class Request implements RequestInterface
         $this->serverData = $_SERVER;
         $this->queryParams = $_GET;
         $this->postData = $_POST;
-        $this->serverData = $_SERVER;
         $this->headers = $this->getAllHeaders();
     }
 
