@@ -27,7 +27,7 @@ class Request implements RequestInterface
         $this->serverData = $_SERVER;
         $this->queryParams = $_GET;
         $this->postData = $_POST;
-        $this->headerData = $this->getAllHeaders();
+        $this->headers = $this->getAllHeaders();
     }
 
     /**
@@ -64,7 +64,7 @@ class Request implements RequestInterface
     /**
      * {@inheritdoc}
      */
-    public function getQueryParam(string $key, $default=null):mixed
+    public function getQueryParam(string $key, string|null $default=null):mixed
     {
         return $this->queryParams[$key] ?? $default;
     }
@@ -82,7 +82,7 @@ class Request implements RequestInterface
     /**
      * {@inheritdoc}
      */
-    public function getPostDatum(string $key, $default=null):mixed
+    public function getPostDatum(string $key, string|null $default=null):mixed
     {
         return $this->postData[$key] ?? $default;
     }
@@ -100,7 +100,7 @@ class Request implements RequestInterface
     /**
      * {@inheritdoc}
      */
-    public function getServerDatum(string $key, $default=null):mixed
+    public function getServerDatum(string $key, string|null $default=null):mixed
     {
         return $this->serverData[$key] ?? $default;
     }
@@ -109,9 +109,27 @@ class Request implements RequestInterface
     /**
      * {@inheritdoc}
      */
+    public function getHeaders():array
+    {
+        return $this->headers;
+    }
+
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getHeader(string $key, string|null $default=null):mixed
+    {
+        return $this->headers[$key] ?? $default;
+    }
+
+
+    /**
+     * {@inheritdoc}
+     */
     public function getPath():mixed
     {
-        return $this->getServerData('REQUEST_URI');
+        return $this->getServerDatum('REQUEST_URI');
     }
 
 
@@ -120,7 +138,7 @@ class Request implements RequestInterface
      */
     public function getMethod():mixed
     {
-        return $this->getServerData('REQUEST_METHOD');
+        return $this->getServerDatum('REQUEST_METHOD');
     }
 
 

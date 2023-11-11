@@ -16,7 +16,7 @@ final class RequestTest extends MockeryTestCase
         $_POST['bar'] = 'barvalue';
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $_SERVER['REQUEST_URI'] = '/foo/bar';
-        $_SERVER['HTTP_FOO_HEADER'] = ['foo'];
+        $_SERVER['HTTP_FOO_HEADER'] = 'foo';
 
         $this->request = new Request();
     }
@@ -93,6 +93,30 @@ final class RequestTest extends MockeryTestCase
         }
         // test default
         $this->assertSame('', $this->request->getServerDatum('HTTP_BAT', ''));
+    }
+
+
+    public function testGetHeaders():void
+    {
+        $expected = [
+            'Foo-Header' => 'foo',
+        ];
+        $this->assertSame($expected, $this->request->getHeaders());
+        $this->assertSame(count($expected), count($this->request->getHeaders()));
+    }
+
+
+    public function testGetHeader():void
+    {
+        $expected = [
+            'Foo-Header' => 'foo',
+            'Bar-Header' => null,
+        ];
+        foreach($expected as $key => $expectedValue) {
+            $this->assertSame($expectedValue, $this->request->getHeader($key));
+        }
+        // test default
+        $this->assertSame('', $this->request->getHeader($key, ''));
     }
 
 
