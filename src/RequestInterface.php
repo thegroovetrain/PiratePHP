@@ -12,7 +12,7 @@ interface RequestInterface
      * 
      * @return array containing all sanitized query params
      */
-    public function getAllQueryParams():array;
+    public function getQueryParams():array;
 
     /**
      * get a specific query param by key
@@ -21,16 +21,16 @@ interface RequestInterface
      * @param string|null $default (optional) can be used to set a default value if the key is not found
      * @return string|null the value of the query param with the given key, or $default if it is not found (null)
      */
-    public function getQueryParam(string $key, $default=null):mixed;
+    public function getQueryParam(string $key, string|null $default=null):mixed;
 
     /**
      * get all of the post data
      * 
      * this is basically a wrapper for $_POST
      * 
-     * @return array containing all sanitized query params
+     * @return array containing all post data
      */
-    public function getAllPostData():array;
+    public function getPostData():array;
 
     /**
      * get a specific post data by key
@@ -39,25 +39,44 @@ interface RequestInterface
      * @param string|null $default (optional) can be used to set a default value if the key is not found
      * @return string|null the value of the post data with the given key, or $default if it is not found (null)
      */
-    public function getPostData(string $key, $default=null):mixed;
+    public function getPostDatum(string $key, string|null $default=null):mixed;
 
     /**
      * get all of the server data
      * 
      * this is basically a wrapper for $_SERVER
      * 
-     * @return array containing all sanitized query params
+     * @return array containing all server data
      */
-    public function getAllServerData():array;
+    public function getServerData():array;
 
     /**
      * get a specific server data by key
      * 
      * @param string $key the key of the desired post data
      * @param string|null $default (optional) can be used to set a default value if the key is not found
-     * @return string|null the value of the post data with the given key, or $default if it is not found (null)
+     * @return string|null the value of the server data with the given key, or $default if it is not found (null)
      */
-    public function getServerData(string $key, $default=null):mixed;
+    public function getServerDatum(string $key, string|null $default=null):mixed;
+
+
+    /**
+     * get all of the request headers
+     * 
+     * @return array containing all request headers
+     */
+    public function getHeaders():array;
+
+
+    /**
+     * get a specific header by key
+     * 
+     * @param string $key the key of the desired header
+     * @param string|null $default (optional) can be used to set a default value if the key is not found
+     * @return string|null the value of the header with the given key, or $default if not found (null)
+     */
+    public function getHeader(string $key, string|null $default=null):mixed;
+
 
     /**
      * returns the path hit by the request (request_uri)
