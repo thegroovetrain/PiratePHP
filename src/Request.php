@@ -27,7 +27,7 @@ class Request implements RequestInterface
         $this->serverData = $_SERVER;
         $this->queryParams = $_GET;
         $this->postData = $_POST;
-        $this->headers = $this->getAllHeaders();
+        $this->headerData = $this->getAllHeaders();
     }
 
     /**
@@ -55,7 +55,7 @@ class Request implements RequestInterface
     /**
      * {@inheritdoc}
      */
-    public function getAllQueryParams():array
+    public function getQueryParams():array
     {
         return $this->queryParams;
     }
@@ -73,7 +73,7 @@ class Request implements RequestInterface
     /**
      * {@inheritdoc}
      */
-    public function getAllPostData():array
+    public function getPostData():array
     {
         return $this->postData;
     }
@@ -82,7 +82,7 @@ class Request implements RequestInterface
     /**
      * {@inheritdoc}
      */
-    public function getPostData(string $key, $default=null):mixed
+    public function getPostDatum(string $key, $default=null):mixed
     {
         return $this->postData[$key] ?? $default;
     }
@@ -91,7 +91,7 @@ class Request implements RequestInterface
     /**
      * {@inheritdoc}
      */
-    public function getAllServerData():array
+    public function getServerData():array
     {
         return $this->serverData;
     }
@@ -100,7 +100,7 @@ class Request implements RequestInterface
     /**
      * {@inheritdoc}
      */
-    public function getServerData(string $key, $default=null):mixed
+    public function getServerDatum(string $key, $default=null):mixed
     {
         return $this->serverData[$key] ?? $default;
     }

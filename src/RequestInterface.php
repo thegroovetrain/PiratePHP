@@ -12,7 +12,7 @@ interface RequestInterface
      * 
      * @return array containing all sanitized query params
      */
-    public function getAllQueryParams():array;
+    public function getQueryParams():array;
 
     /**
      * get a specific query param by key
@@ -30,7 +30,7 @@ interface RequestInterface
      * 
      * @return array containing all sanitized query params
      */
-    public function getAllPostData():array;
+    public function getPostData():array;
 
     /**
      * get a specific post data by key
@@ -39,7 +39,7 @@ interface RequestInterface
      * @param string|null $default (optional) can be used to set a default value if the key is not found
      * @return string|null the value of the post data with the given key, or $default if it is not found (null)
      */
-    public function getPostData(string $key, $default=null):mixed;
+    public function getPostDatum(string $key, $default=null):mixed;
 
     /**
      * get all of the server data
@@ -48,7 +48,7 @@ interface RequestInterface
      * 
      * @return array containing all sanitized query params
      */
-    public function getAllServerData():array;
+    public function getServerData():array;
 
     /**
      * get a specific server data by key
@@ -57,7 +57,7 @@ interface RequestInterface
      * @param string|null $default (optional) can be used to set a default value if the key is not found
      * @return string|null the value of the post data with the given key, or $default if it is not found (null)
      */
-    public function getServerData(string $key, $default=null):mixed;
+    public function getServerDatum(string $key, $default=null):mixed;
 
     /**
      * returns the path hit by the request (request_uri)

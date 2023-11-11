@@ -22,14 +22,14 @@ final class RequestTest extends MockeryTestCase
     }
 
 
-    public function testGetAllQueryParams():void
+    public function testGetQueryParams():void
     {
         $expected = [
             'foo' => 'foovalue',
             'bar' => 'barvalue',
         ];
-        $this->assertSame($expected, $this->request->getAllQueryParams());
-        $this->assertSame(count($expected), count($this->request->getAllQueryParams()));
+        $this->assertSame($expected, $this->request->getQueryParams());
+        $this->assertSame(count($expected), count($this->request->getQueryParams()));
     }
 
 
@@ -48,18 +48,18 @@ final class RequestTest extends MockeryTestCase
     }
 
 
-    public function testGetAllPostData():void
+    public function testGetPostData():void
     {
         $expected = [
             'foo' => 'foovalue',
             'bar' => 'barvalue',
         ];
-        $this->assertSame($expected, $this->request->getAllPostData());
-        $this->assertSame(count($expected), count($this->request->getAllPostData()));
+        $this->assertSame($expected, $this->request->getPostData());
+        $this->assertSame(count($expected), count($this->request->getPostData()));
     }
 
 
-    public function testGetPostData():void
+    public function testGetPostDatum():void
     {
         $expected = [
             'foo' => 'foovalue',
@@ -67,21 +67,21 @@ final class RequestTest extends MockeryTestCase
             'bat' => null,
         ];
         foreach($expected as $key => $expectedValue) {
-            $this->assertSame($expectedValue, $this->request->getPostData($key));
+            $this->assertSame($expectedValue, $this->request->getPostDatum($key));
         }
         // test default
-        $this->assertSame('', $this->request->getPostData('baz', ''));
-    }
-
-
-    public function testGetAllServerData():void
-    {
-        $this->assertSame($_SERVER, $this->request->getAllServerData());
-        $this->assertSame(count($_SERVER), count($this->request->getAllServerData()));
+        $this->assertSame('', $this->request->getPostDatum('baz', ''));
     }
 
 
     public function testGetServerData():void
+    {
+        $this->assertSame($_SERVER, $this->request->getServerData());
+        $this->assertSame(count($_SERVER), count($this->request->getServerData()));
+    }
+
+
+    public function testGetServerDatum():void
     {
         $expected = [
             'REQUEST_METHOD' => 'GET',
@@ -89,10 +89,10 @@ final class RequestTest extends MockeryTestCase
             'HTTP_BAZ' => null,
         ];
         foreach($expected as $key => $expectedValue) {
-            $this->assertSame($expectedValue, $this->request->getServerData($key));
+            $this->assertSame($expectedValue, $this->request->getServerDatum($key));
         }
         // test default
-        $this->assertSame('', $this->request->getServerData('HTTP_BAT', ''));
+        $this->assertSame('', $this->request->getServerDatum('HTTP_BAT', ''));
     }
 
 
