@@ -96,6 +96,12 @@ final class RequestTest extends MockeryTestCase
     }
 
 
+    public function testGetPath():void
+    {
+        $this->assertSame('/foo/bar', $this->request->getPath());
+    }
+
+
     public function testGetMethod():void
     {
         $this->assertSame('GET', $this->request->getMethod());

@@ -109,9 +109,18 @@ class Request implements RequestInterface
     /**
      * {@inheritdoc}
      */
-    public function getMethod():string
+    public function getPath():mixed
     {
-        return $this->getServerData('REQUEST_METHOD', '');
+        return $this->getServerData('REQUEST_URI');
+    }
+
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getMethod():mixed
+    {
+        return $this->getServerData('REQUEST_METHOD');
     }
 
 

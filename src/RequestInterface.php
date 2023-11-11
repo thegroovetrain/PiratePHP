@@ -60,11 +60,18 @@ interface RequestInterface
     public function getServerData(string $key, $default=null):mixed;
 
     /**
+     * returns the path hit by the request (request_uri)
+     * 
+     * @return string the request uri, or null if unset.
+     */
+    public function getPath():mixed;
+
+    /**
      * returns the request method
      * 
-     * @return string the request method, or '' if none is set.
+     * @return string the request method, or null if unset.
      */
-    public function getMethod():string;
+    public function getMethod():mixed;
 
     /**
      * returns whether or not the method is a CONNECT request
