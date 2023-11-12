@@ -1,38 +1,106 @@
 <?php declare(strict_types=1);
 
 namespace EricSeibt\PiratePHP;
-use EricSeibt\PiratePHP\RequestInterface;
+use EricSeibt\PiratePHP\{Request, RequestInterface};
 
 
 class Route implements RouteInterface
 {
-    protected string $path;
-    protected string $handler;
+    private string $path;
+    private string $httpMethodContext = 'ALL';
+    private array $middleware = [];
+    private array $handlers = [];
 
-    function __construct(string $path, string $handler) {
+
+    function __construct($path)
+    {
         $this->path = $path;
-        $this->handler = $handler;
     }
 
-    public function checkMatch(RequestInterface $request):bool
+
+    /**
+     * adds the handler to the given method and then returns the updated instance
+     * 
+     * @param string    $method     the http method
+     * @param callable  $handler    the method handler
+     * @return static   the updated instance of itself
+     */
+    private function addMethodHandler(string $method, callable $handler):static
     {
-
-    }
-}
-
-
-class DirectRoute extends Route implements DirectRouteInterface
-{
-    protected string $method;
-
-    function __construct(string $path, string $handler, string $method='GET')
-    {
-        $this->method = $method;
-        parent::__construct($path, $handler);
+        $this->httpMethodContext = $method;
+        $this->handlers[$method] = $handler;
+        return $this;
     }
 
-    public function checkMatch(RequestInterface $request):bool
-    {
-        
+
+    /**
+     * {@inheritdoc}
+     */
+    public function connect(callable $handler):static { 
+        return $this->addMethodHandler(Request::HTTP_CONNECT, $handler); 
+    }
+
+
+    /**
+     * {@inheritdoc}
+     */
+    public function delete(callable $handler):static { 
+        return $this->addMethodHandler(Request::HTTP_DELETE, $handler); 
+    }
+
+
+    /**
+     * {@inheritdoc}
+     */
+    public function get(callable $handler):static { 
+        return $this->addMethodHandler(Request::HTTP_GET, $handler); 
+    }
+
+
+    /**
+     * {@inheritdoc}
+     */
+    public function head(callable $handler):static { 
+        return $this->addMethodHandler(Request::HTTP_HEAD, $handler); 
+    }
+
+    
+    /**
+     * {@inheritdoc}
+     */
+    public function options(callable $handler):static { 
+        return $this->addMethodHandler(Request::HTTP_OPTIONS, $handler); 
+    }
+
+
+    /**
+     * {@inheritdoc}
+     */
+    public function patch(callable $handler):static { 
+        return $this->addMethodHandler(Request::HTTP_PATCH, $handler); 
+    }
+
+
+    /**
+     * {@inheritdoc}
+     */
+    public function post(callable $handler):static { 
+        return $this->addMethodHandler(Request::HTTP_POST, $handler); 
+    }
+
+
+    /**
+     * {@inheritdoc}
+     */
+    public function put(callable $handler):static { 
+        return $this->addMethodHandler(Request::HTTP_PUT, $handler); 
+    }
+
+
+    /**
+     * {@inheritdoc}
+     */
+    public function trace(callable $handler):static { 
+        return $this->addMethodHandler(Request::HTTP_TRACE, $handler); 
     }
 }
