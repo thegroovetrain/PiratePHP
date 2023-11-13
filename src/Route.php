@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
-namespace EricSeibt\PiratePHP;
-use EricSeibt\PiratePHP\{Request, RequestInterface};
+namespace thegroovetrain\PiratePHP;
+use thegroovetrain\PiratePHP\{Request, RequestInterface};
 
 
 class Route implements RouteInterface

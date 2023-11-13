@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 use Mockery\Adapter\Phpunit\MockeryTestCase;
-use EricSeibt\PiratePHP\{RequestInterface, Request};
+use thegroovetrain\PiratePHP\{RequestInterface, Request};
 
 
 final class RequestTest extends MockeryTestCase
@@ -134,7 +134,7 @@ final class RequestTest extends MockeryTestCase
 
     public function testIsMethod():void
     {
-        $reflection = new ReflectionClass('EricSeibt\PiratePHP\Request');
+        $reflection = new ReflectionClass('thegroovetrain\PiratePHP\Request');
         $constants = $reflection->getConstants();
         $constants = array_filter($constants, function ($value, $key) {
             return substr($key, 0, 5) === 'HTTP_';
@@ -145,7 +145,7 @@ final class RequestTest extends MockeryTestCase
             $ikey = array_keys($constants)[$i];
             $ivalue = $constants[$ikey];
             $testMethodName = 'is' . ucwords(strtolower($ivalue));
-            $reflectionTestMethod = new ReflectionMethod('EricSeibt\PiratePHP\Request', $testMethodName);
+            $reflectionTestMethod = new ReflectionMethod('thegroovetrain\PiratePHP\Request', $testMethodName);
 
             for($j = 0; $j < count($constants); $j++) {
                 $jkey = array_keys($constants)[$j];

@@ -1,4 +1,4 @@
 <?php declare(strict_types=1);
 
-namespace EricSeibt\PiratePHP;
+namespace thegroovetrain\PiratePHP;
 

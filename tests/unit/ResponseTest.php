@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 use Mockery\Adapter\Phpunit\MockeryTestCase;
-use EricSeibt\PiratePHP\Response;
+use thegroovetrain\PiratePHP\Response;
 
 
 final class ResponseTest extends MockeryTestCase
