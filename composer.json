@@ -1,5 +1,5 @@
 {
-    "name": "ericseibt/piratephp",
+    "name": "thegroovetrain/piratephp",
     "description": "lightweight php web framework",
     "type": "library",
     "require": {
@@ -8,7 +8,7 @@
     "license": "GPL-3.0-only",
     "autoload": {
         "psr-4": {
-            "EricSeibt\\PiratePHP\\": "src/"
+            "thegroovetrain\\PiratePHP\\": "src/"
         }
     },
     "authors": [
