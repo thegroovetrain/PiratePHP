@@ -2,9 +2,6 @@
     "name": "thegroovetrain/piratephp",
     "description": "lightweight php web framework",
     "type": "library",
-    "require": {
-        "psr/http-message": "^2.0"
-    },
     "license": "GPL-3.0-only",
     "autoload": {
         "psr-4": {
