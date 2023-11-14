@@ -1,49 +1,99 @@
 <?php declare(strict_types=1);
 
 use Mockery\Adapter\Phpunit\MockeryTestCase;
-use thegroovetrain\PiratePHP\Response;
+use thegroovetrain\PiratePHP\{Response, ResponseInterface};
 
 
 final class ResponseTest extends MockeryTestCase
 {
-    public function testStatusCodes():void
+    public function testPrepare():void
     {
-        foreach(Response::HTTP_STATUS_CODES as $code => $message) {
-            $response = new Response();
-            $response->setStatus($code);
-            $this->assertSame($code, $response->getStatusCode());
-            $this->assertSame($message, $response->getStatusMessage());
-        }
-        $response = new Response();
-        $response->setStatus(200, "foo");
+        $response = Response::prepare();
+        $this->assertInstanceOf(ResponseInterface::class, $response);
         $this->assertSame(200, $response->getStatusCode());
-        $this->assertSame("foo", $response->getStatusMessage());
-    }
-
-
-    public function testBody():void
-    {
-        $response = new Response();
+        $this->assertSame(Response::HTTP_STATUS_CODES[200], $response->getStatusMessage());
+        $this->assertSame([], $response->getHeaders());
         $this->assertSame('', $response->getBody());
-        $response->setBody('foo');
-        $this->assertSame('foo', $response->getBody());
     }
 
 
-    public function testHeaders():void
+    public function testWithStatusDefaultMessage():void
     {
-        $response = new Response();
-        $response->addHeader('Foo', 'foovalue');
-        $response->addHeaders([
-            'Bar' => 'barvalue',
-            'Baz' => 'bazvalue',
+        $response = Response::prepare();
+        for($i = 1; $i <= 600; $i++) {
+            $response = $response->withStatus($i);
+            $expectedMessage = Response::HTTP_STATUS_CODES[$i] ?? '';
+            $this->assertSame($expectedMessage, $response->getStatusMessage());
+        }
+    }
+
+
+    public function testWithStatusCustomMessage():void
+    {
+        $response = Response::prepare();
+        for($i = 1; $i <= 600; $i++) {
+            $expectedMessage = "foo<$i>";
+            $response = $response->withStatus($i, $expectedMessage);
+            $this->assertSame($expectedMessage, $response->getStatusMessage());   
+        }
+    }
+
+
+    public function testWithBody():void
+    {
+        $response = Response::prepare();
+        $response = $response->withBody("foo");
+        $this->assertSame("foo", $response->getBody());
+    }
+
+
+    public function testWithHeaders():void
+    {
+        $response = Response::prepare();
+        $response = $response->withHeader("Foo", "foovalue");
+        $response = $response->withHeaders([
+            "Bar" => "barvalue",
+            "Baz" => "bazvalue",
+            "Bat" => "batvalue",
         ]);
         $this->assertSame([
-            'Foo' => 'foovalue',
-            'Bar' => 'barvalue',
-            'Baz' => 'bazvalue',
+            "Foo" => "foovalue",
+            "Bar" => "barvalue",
+            "Baz" => "bazvalue",
+            "Bat" => "batvalue",
         ], $response->getHeaders());
+        $this->assertSame("foovalue", $response->getHeader('Foo'));
+        $response = $response->withoutHeader('Bar');
+        $response = $response->withoutHeaders(['Baz', 'Bat']);
+        $this->assertSame([
+            "Foo" => "foovalue",
+        ], $response->getHeaders());
+        $this->assertSame(null, $response->getHeader("Bar"));
     }
 
-    // TODO: test send()
+
+    public function testWithoutHeaders():void
+    {
+        $response = Response::prepare();
+        $response = $response->withHeaders([
+            "Foo" => "foovalue",
+            "Bar" => "barvalue",
+            "Baz" => "bazvalue",
+        ]);
+        $response = $response->withoutHeader("Foo");
+        $this->assertNull($response->getHeader("Foo"));
+        $response = $response->withoutHeaders(["Bar", "Baz"]);
+        $this->assertSame([], $response->getHeaders());
+        
+    }
+
+    
+    public function testSend():void
+    {
+        $response = Response::prepare()->withBody("foo");
+        ob_start();
+        $response->send();
+        $output = ob_get_clean();
+        $this->assertSame("foo", $output);
+    }
 }

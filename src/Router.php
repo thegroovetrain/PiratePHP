@@ -4,7 +4,7 @@ namespace thegroovetrain\PiratePHP;
 use thegroovetrain\PiratePHP\{Route, RouteInterface};
 
 
-class Router implements thegroovetrain\PiratePHP\RouterInterface
+class Router //implements thegroovetrain\PiratePHP\RouterInterface
 {
     private array $routes = [];
 }

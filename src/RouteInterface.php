@@ -2,10 +2,23 @@
 
 namespace thegroovetrain\PiratePHP;
 use thegroovetrain\PiratePHP\RequestInterface;
+use thegroovetrain\PiratePHP\ResponseInterface;
 
 
 interface RouteInterface
 {
+    /**
+     * returns true if the requested resource matches this route's path and methods
+     * 
+     * returns a response, either from the matched handler function, or
+     * a 404 response if the path is not matched
+     * a 405 response if the path is matched but the method is not
+     * 
+     * @param RequestInterface  $request
+     * @return ResponseInterface
+     */
+    public function handleRequest(RequestInterface $request):ResponseInterface;
+     
     /**
      * adds handler for connect method
      * 

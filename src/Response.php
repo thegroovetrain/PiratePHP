@@ -82,112 +82,124 @@ class Response implements ResponseInterface
     ];
 
 
-    private string $body = '';
-    private array $headers = [];
-    private int $statusCode = 200;
-    private string $statusMessage;
+    private string $body;
+    private array $headers;
+    private int $code;
+    private string | null $message;
 
 
-    /**
-     * {@inheritdoc}
-     */
+    private function __construct()
+    {
+        $this->body = '';
+        $this->headers = [];
+        $this->code = 200;
+        $this->message = null;
+    }
+
+
+    public static function prepare():static
+    {
+        return new static();
+    }
+
+
+    public function withStatus(int $code, string $message = null):static
+    {
+        $new = clone $this;
+        $new->code = $code;
+        $new->message = $message;
+        return $new;
+    }
+
+
+    public function withBody(string $content):static
+    {
+        $new = clone $this;
+        $new->body = $content;
+        return $new;
+    }
+
+
+    public function withHeader(string $name, string $value):static
+    {
+        $new = clone $this;
+        $new->headers[$name] = $value;
+        return $new;
+    }
+
+
+    public function withHeaders(array $headers):static
+    {
+        $new = clone $this;
+        $new->headers = array_merge($this->headers, $headers);
+        return $new;
+    }
+
+
+    public function withoutHeader($name):static
+    {
+        $new = clone $this;
+        unset($new->headers[$name]);
+        return $new;
+    }
+
+
+    public function withoutHeaders(array $names):static
+    {
+        $new = clone $this;
+        foreach($names as $name) {
+            unset($new->headers[$name]);
+        }
+        return $new;
+    }
+
+
     public function getStatusCode():int
     {
-        return $this->statusCode;
+        return $this->code;
     }
 
 
-    /**
-     * {@inheritdoc}
-     */
     public function getStatusMessage():string
     {
-        return $this->statusMessage;
-    }
-
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function setStatus(int $code, string $message = null):static
-    {
-        $this->statusCode = $code;
-        
-        if(isset(self::HTTP_STATUS_CODES[$code])) {
-            // if there's a default response code message available, start with that.
-            $this->statusMessage = self::HTTP_STATUS_CODES[$code];
-        } else {
-            // otherwise, start with empty text for the defalt.
-            $this->statusMessage = '';
+        if(isset($this->message)) {
+            return $this->message;
         }
-
-        // if a custom message was provided, use that instead
-        if(isset($message)) {
-            $this-> statusMessage = $message;
+        if(isset(self::HTTP_STATUS_CODES[$this->code])) {
+            return self::HTTP_STATUS_CODES[$this->code];
         }
-
-        return $this;
+        // fallback
+        return "";
     }
 
 
-    /**
-     * {@inheritdoc}
-     */
     public function getBody():string
     {
         return $this->body;
     }
 
 
-    /**
-     * {@inheritdoc}
-     */
-    public function setBody(string $content):static
+    public function getHeader(string $name):mixed
     {
-        $this->body = $content;
-        return $this;
+        return $this->headers[$name] ?? null;
     }
 
 
-    /**
-     * {@inheritdoc}
-     */
     public function getHeaders():array
     {
         return $this->headers;
     }
 
 
-    /**
-     * {@inheritdoc}
-     */
-    public function addHeader(string $name, string $value):static
-    {
-        $this->headers[$name] = $value;
-        return $this;
-    }
-
-
-    /**
-     * {@inheritdoc}
-     */
-    public function addHeaders(array $headers):static
-    {
-        $this->headers = array_merge($this->headers, $headers);
-        return $this;
-    }
-
-
-    /**
-     * {@inheritdoc}
-     */
     public function send():void
     {
         if(!headers_sent()) {
             foreach($this->headers as $name => $value) {
                 header("$name: $value");
             }
-            http_response_code($this->statusCode);
+            $code = $this->getStatusCode();
+            $message = $this->getStatusMessage();
+            header("$code $message");
         }
         echo $this->body;
     }

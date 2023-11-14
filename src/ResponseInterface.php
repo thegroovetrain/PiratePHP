@@ -6,6 +6,65 @@ namespace thegroovetrain\PiratePHP;
 interface ResponseInterface
 {
     /**
+     * returns an empty Response instance.  This should be used as the constructor.
+     * 
+     * the default response code is 200.
+     * 
+     * @return static   the instance.
+     */
+    public static function prepare():static;
+
+    /**
+     * clones the current instance with the new given status code and message.
+     * 
+     * @param int       $code       the new status code.
+     * @param string    $message    the new status message.
+     * @return static   the clone.
+     */
+    public function withStatus(int $code, string $message):static;
+
+    /**
+     * clones the current instance with the new given body.
+     * 
+     * @param string    $contet    the new response body content.
+     * @return static   the clone.
+     */
+    public function withBody(string $contet):static;
+
+    /**
+     * clones the current instance with the new header added to the list of headers
+     * 
+     * @param string    $name   the new header's name.
+     * @param string    $value  the new header's value.
+     * @return static   the clone.
+     */
+    public function withHeader(string $name, string $value):static;
+
+    /**
+     * clones the current instance with the given headers appended to the list of headers.
+     * 
+     * @param array     $headers    an array of headers in the format [$name => $value]
+     * @return static   the clone.
+     */
+    public function withHeaders(array $headers):static;
+
+    /**
+     * clones the current instance without the given header in its list.
+     * 
+     * @param string    $name
+     * @return static   the clone.
+     */
+    public function withoutHeader(string $name):static;
+
+    /**
+     * clones the current instance without the given headers in its list.
+     * 
+     * @param array     $names
+     * @return static   the clone.
+     */
+    public function withoutHeaders(array $names):static;
+
+    /**
      * gets the current status code
      * 
      * @return int  the current HTTP status code
@@ -26,22 +85,16 @@ interface ResponseInterface
      * @param string    $message       overrides the default status message, if any
      * @return static   $this
      */
-    public function setStatus(int $status, string|null $message):static;
-
-    /**
-     * gets the current response body
-     * 
-     * @return string   the current response body
-     */
+ 
     public function getBody():string;
 
     /**
-     * sets the response body and returns itself
+     * gets the value of the named header.
      * 
-     * @param string    $text   the desired response body
-     * @return static   $this
+     * @param string    $name
+     * @return string|null   the value of the header or null if it is not found.
      */
-    public function setBody(string $body):static;
+    public function getHeader(string $name):mixed;
 
     /**
      * gets the current response headers
@@ -50,22 +103,6 @@ interface ResponseInterface
      */
     public function getHeaders():array;
 
-    /**
-     * adds a header to the response and returns itself
-     * 
-     * @param string    $name   name of the header
-     * @param string    $value  value of the header
-     * @return static   $this   
-     */
-    public function addHeader(string $name, string $value):static;
-
-    /**
-     * adds an array of headers to the response and returns itself
-     * 
-     * @param array     $headers    array of headers [$name => $value]
-     * @return static   $this
-     */
-    public function addHeaders(array $headers):static;
 
     /**
      * sends the current response
