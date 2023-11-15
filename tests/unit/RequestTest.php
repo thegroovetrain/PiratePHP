@@ -18,7 +18,12 @@ final class RequestTest extends MockeryTestCase
         $_SERVER['REQUEST_URI'] = '/foo/bar';
         $_SERVER['HTTP_FOO_HEADER'] = 'foo';
 
-        $this->request = new Request();
+        $this->request = Request::receive();
+    }
+
+    protected function mockertTestTearDown()
+    {
+        Request::reset();
     }
 
 
@@ -129,38 +134,5 @@ final class RequestTest extends MockeryTestCase
     public function testGetMethod():void
     {
         $this->assertSame('GET', $this->request->getMethod());
-    }
-
-
-    public function testIsMethod():void
-    {
-        $reflection = new ReflectionClass('thegroovetrain\PiratePHP\Request');
-        $constants = $reflection->getConstants();
-        $constants = array_filter($constants, function ($value, $key) {
-            return substr($key, 0, 5) === 'HTTP_';
-        }, ARRAY_FILTER_USE_BOTH);
-
-        for($i = 0; $i < count($constants); $i++) {
-            // method to test
-            $ikey = array_keys($constants)[$i];
-            $ivalue = $constants[$ikey];
-            $testMethodName = 'is' . ucwords(strtolower($ivalue));
-            $reflectionTestMethod = new ReflectionMethod('thegroovetrain\PiratePHP\Request', $testMethodName);
-
-            for($j = 0; $j < count($constants); $j++) {
-                $jkey = array_keys($constants)[$j];
-                $jvalue = $constants[$jkey];
-
-                $_SERVER['REQUEST_METHOD'] = $jvalue;
-                $request = new Request();
-
-                $matches = $jvalue === $ivalue;
-                if($matches) {
-                    $this->assertTrue($reflectionTestMethod->invoke($request));
-                } else {
-                    $this->assertFalse($reflectionTestMethod->invoke($request));
-                }
-            }
-        }
     }
 }

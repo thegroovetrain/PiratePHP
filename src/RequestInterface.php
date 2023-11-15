@@ -6,6 +6,27 @@ namespace thegroovetrain\PiratePHP;
 interface RequestInterface
 {
     /**
+     * returns the request instance.
+     * 
+     * if the request has not been instantiated, instantiates it first.
+     * You should not use the regular constructor except for testing!
+     * 
+     * @return RequestInterface
+     */
+    public static function receive():RequestInterface;
+
+    /**
+     * resets the instance to null.
+     * 
+     * this probably should not be used unless $_GET, $_POST, or $_SERVER have been modified.
+     * And even then that probably would not happen outside of testing.
+     * So, use this at your own risk.
+     * 
+     * @return void
+     */
+    public static function reset():void;
+
+    /**
      * get all of the query params
      * 
      * this is basically a wrapper for $_GET
@@ -91,67 +112,4 @@ interface RequestInterface
      * @return string the request method, or null if unset.
      */
     public function getMethod():mixed;
-
-    /**
-     * returns whether or not the method is a CONNECT request
-     * 
-     * @return bool true if request method is CONNECT, otherwise false
-     */
-    public function isConnect():bool;
-
-    /**
-     * returns whether or not the method is a DELETE request
-     * 
-     * @return bool true if request method is DELETE, otherwise false
-     */
-    public function isDelete():bool;
-
-    /**
-     * returns whether or not the method is a GET request
-     * 
-     * @return bool true if request method is GET, otherwise false
-     */
-    public function isGet():bool;
-
-    /**
-     * returns whether or not the method is a HEAD request
-     * 
-     * @return bool true if request method is HEAD, otherwise false
-     */
-    public function isHead():bool;
-
-    /**
-     * returns whether or not the method is an OPTIONS request
-     * 
-     * @return bool true if request method is OPTIONS, otherwise false
-     */
-    public function isOptions():bool;
-
-    /**
-     * returns whether or not the method is a PATCH request
-     * 
-     * @return bool true if request method is PATCH, otherwise false
-     */
-    public function isPatch():bool;
-
-    /**
-     * returns whether or not the method is a POST request
-     * 
-     * @return bool true if request method is POST, otherwise false
-     */
-    public function isPost():bool;
-
-    /**
-     * returns whether or not the method is a PUT request
-     * 
-     * @return bool true if request method is PUT, otherwise false
-     */
-    public function isPut():bool;
-
-    /**
-     * returns whether or not the method is a TRACE request
-     * 
-     * @return bool true if request method is TRACE, otherwise false
-     */
-    public function isTrace():bool;
 }
