@@ -1,8 +1,6 @@
 <?php declare(strict_types=1);
 
 namespace thegroovetrain\PiratePHP;
-use thegroovetrain\PiratePHP\{Request, RequestInterface};
-use thegroovetrain\PiratePHP\{Response, ResponseInterface};
 
 
 class Route implements RouteInterface
