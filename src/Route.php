@@ -7,122 +7,83 @@ use thegroovetrain\PiratePHP\{Response, ResponseInterface};
 
 class Route implements RouteInterface
 {
-    const PATH_NOT_FOUND = 0b01;
-    const METHOD_NOT_SUPPORTED = 0b10;
+    private string|null $path;
+    private $handler;
+    private array $methods;
+    private array $middleware
+    ;
 
-    private string $path;
-    private string $httpMethodContext = 'ALL';
-    private array $middleware = [];
-    private array $handlers = [];
-
-
-    function __construct($path)
+    private function __construct(
+        string|null $path = null,
+        callable|null $handler = null, 
+        array $methods = [], 
+        array $middleware = []
+    )
     {
         $this->path = $path;
+        $this->handler = $handler;
+        $this->methods = $methods;
+        $this->middleware = $middleware;
     }
 
 
-    /**
-     * {@inheritdoc}
-     */
-    public function handleRequest(RequestInterface $request):ResponseInterface
+    public static function create():static
     {
-        $pattern = preg_replace('/\/:([^\/]+)/', '/(?P<$1>[^/]+)', $this->path);
-        if(!preg_match('#^' . $pattern . '$#', $request->getPath(), $matches)) {
-            if(isset($this->handlers[$request->getMethod()])) {
-                $params = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
-                $params = ['request' => $request] + $params;    // make sure $request is the first item
-                return call_user_func_array($this->handlers[$method], $params)
-            }
-            return new Response(405);   // METHOD NOT SUPPORTED
-        }
-        return new Response(404);       // PATH NOT MATCHED
+        return new static();
     }
 
 
-    /**
-     * adds the handler to the given method and then returns the updated instance
-     * 
-     * @param string    $method     the http method
-     * @param callable  $handler    the method handler
-     * @return static   the updated instance of itself
-     */
-    private function addMethodHandler(string $method, callable $handler):static
+    public function withPath(string $path):static
     {
-        $this->httpMethodContext = $method;
-        $this->handlers[$method] = $handler;
-        return $this;
+        $new = clone $this;
+        $new->path = $path;
+        return $new;
     }
 
 
-    /**
-     * {@inheritdoc}
-     */
-    public function connect(callable $handler):static { 
-        return $this->addMethodHandler(Request::HTTP_CONNECT, $handler); 
+    public function withHandler(callable $handler):static
+    {
+        $new = clone $this;
+        $new->handler = $handler;
+        return $new;
     }
 
 
-    /**
-     * {@inheritdoc}
-     */
-    public function delete(callable $handler):static { 
-        return $this->addMethodHandler(Request::HTTP_DELETE, $handler); 
+    public function withMethods(string ...$methods):static
+    {
+        $new = clone $this;
+        $new->methods = [...$this->methods, ...$methods];
+        return $new;
     }
 
 
-    /**
-     * {@inheritdoc}
-     */
-    public function get(callable $handler):static { 
-        return $this->addMethodHandler(Request::HTTP_GET, $handler); 
+    public function withMiddleware(callable ...$middleware):static
+    {
+        $new = clone $this;
+        $new->middleware = [...$this->middleware, ...$middleware];
+        return $new;
     }
 
 
-    /**
-     * {@inheritdoc}
-     */
-    public function head(callable $handler):static { 
-        return $this->addMethodHandler(Request::HTTP_HEAD, $handler); 
-    }
-
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function options(callable $handler):static { 
-        return $this->addMethodHandler(Request::HTTP_OPTIONS, $handler); 
+    public function getPath():string
+    {
+        return $this->path ?? '';
     }
 
 
-    /**
-     * {@inheritdoc}
-     */
-    public function patch(callable $handler):static { 
-        return $this->addMethodHandler(Request::HTTP_PATCH, $handler); 
+    public function getHandler():mixed
+    {
+        return $this->handler;
     }
 
 
-    /**
-     * {@inheritdoc}
-     */
-    public function post(callable $handler):static { 
-        return $this->addMethodHandler(Request::HTTP_POST, $handler); 
+    public function getMethods():array
+    {
+        return $this->methods;
     }
 
-
-    /**
-     * {@inheritdoc}
-     */
-    public function put(callable $handler):static { 
-        return $this->addMethodHandler(Request::HTTP_PUT, $handler); 
-    }
-
-
-    /**
-     * {@inheritdoc}
-     */
-    public function trace(callable $handler):static { 
-        return $this->addMethodHandler(Request::HTTP_TRACE, $handler); 
+    public function getMiddleware():array
+    {
+        return $this->middleware;
     }
 }
