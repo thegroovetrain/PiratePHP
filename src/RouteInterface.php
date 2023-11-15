@@ -8,86 +8,69 @@ use thegroovetrain\PiratePHP\ResponseInterface;
 interface RouteInterface
 {
     /**
-     * returns true if the requested resource matches this route's path and methods
+     * creates a new route.
      * 
-     * returns a response, either from the matched handler function, or
-     * a 404 response if the path is not matched
-     * a 405 response if the path is matched but the method is not
-     * 
-     * @param RequestInterface  $request
-     * @return ResponseInterface
+     * @return static
      */
-    public function handleRequest(RequestInterface $request):ResponseInterface;
-     
-    /**
-     * adds handler for connect method
-     * 
-     * @param callable  $handler    handler function for this method
-     * @return static   returns the updated route with handler added
-     */
-    public function connect(callable $handler):static;
+    public static function create():static;
 
     /**
-     * adds handler for delete method
+     * returns a clone with given path
      * 
-     * @param callable  $handler    handler function for this method
-     * @return static   returns the updated route with handler added
+     * @param string    $path
+     * @return static
      */
-    public function delete(callable $handler):static;
+    public function withPath(string $path):static;
 
     /**
-     * adds handler for get method
+     * returns a clone with given handler
      * 
-     * @param callable  $handler    handler function for this method
-     * @return static   returns the updated route with handler added
+     * @param callable  $handler
+     * @return static
      */
-    public function get(callable $handler):static;
+    public function withHandler(callable $handler):static;
 
     /**
-     * adds handler for head method
+     * returns a clone with given method(s) appended.
      * 
-     * @param callable  $handler    handler function for this method
-     * @return static   returns the updated route with handler added
+     * @param string    $methods    you may add any number of these.
+     * @return static
      */
-    public function head(callable $handler):static;
+    public function withMethods(string ...$methods):static;
 
     /**
-     * adds handler for options method
+     * returns a clone with given middleware added.
      * 
-     * @param callable  $handler    handler function for this method
-     * @return static   returns the updated route with handler added
+     * @param callable  $middleware     you may add any number of these.
+     * @return static
      */
-    public function options(callable $handler):static;
+    public function withMiddleware(callable ...$middleware):static;
 
     /**
-     * adds handler for patch method
+     * gets the route's path
      * 
-     * @param callable  $handler    handler function for this method
-     * @return static   returns the updated route with handler added
+     * @return string
      */
-    public function patch(callable $handler):static;
+    public function getPath():string;
 
     /**
-     * adds handler for post method
+     * gets the handler
      * 
-     * @param callable  $handler    handler function for this method
-     * @return static   returns the updated route with handler added
+     * @return callable|null
      */
-    public function post(callable $handler):static;
+    public function getHandler():mixed;
 
     /**
-     * adds handler for put method
+     * gets the list of methods
      * 
-     * @param callable  $handler    handler function for this method
-     * @return static   returns the updated route with handler added
+     * @return array
      */
-    public function put(callable $handler):static;
+    public function getMethods():array;
 
     /**
-     * adds handler for trace method
+     * gets the list of middleware
      * 
-     * @param callable  $handler    handler function for this method
-     * @return static   returns the updated route with handler added
+     * @return array
      */
-    public function trace(callable $handler):static;
+    public function getMiddleware():array;
 }
