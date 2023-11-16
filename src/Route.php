@@ -5,11 +5,12 @@ namespace thegroovetrain\PiratePHP;
 
 class Route implements RouteInterface
 {
+    use HasMiddleware;
+
     private string|null $path;
     private $handler;
     private array $methods;
-    private array $middleware
-    ;
+
 
     private function __construct(
         string|null $path = null,
@@ -55,14 +56,6 @@ class Route implements RouteInterface
     }
 
 
-    public function withMiddleware(callable ...$middleware):static
-    {
-        $new = clone $this;
-        $new->middleware = [...$this->middleware, ...$middleware];
-        return $new;
-    }
-
-
     public function getPath():string
     {
         return $this->path ?? '';
@@ -78,10 +71,5 @@ class Route implements RouteInterface
     public function getMethods():array
     {
         return $this->methods;
-    }
-
-    public function getMiddleware():array
-    {
-        return $this->middleware;
     }
 }

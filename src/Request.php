@@ -5,10 +5,11 @@ namespace thegroovetrain\PiratePHP;
 
 class Request implements RequestInterface
 {
-    private array $headers = [];
-    private array $postData = [];
-    private array $queryParams = [];
-    private array $serverData = [];
+    private array $headers;
+    private array $postData;
+    private array $queryParams;
+    private array $serverData;
+    private array $attributes = [];
 
 
     const HTTP_CONNECT = 'CONNECT';
@@ -22,21 +23,9 @@ class Request implements RequestInterface
     const HTTP_TRACE = 'TRACE';
 
 
-    private static RequestInterface | null $instance = null;
-
-
-    public static function receive():RequestInterface
+    public static function create():static
     {
-        if (self::$instance === null) {
-            self::$instance = new static($_GET, $_POST, $_SERVER);
-        }
-        return self::$instance;
-    }
-
-
-    public static function reset():void
-    {
-        self::$instance = null;
+        return new static($_GET, $_POST, $_SERVER);
     }
     
 
@@ -47,6 +36,7 @@ class Request implements RequestInterface
         $this->postData = $post;
         $this->headers = $this->getAllHeaders($server);
     }
+
 
     /**
      * provides a fallback for servers that do not have getallheaders()
@@ -67,6 +57,30 @@ class Request implements RequestInterface
             }
         }
         return $headers;
+    }
+
+
+    public function withAttribute(string $key, mixed $value):static
+    {
+        $new = clone $this;
+        $new->attributes[$key] = $value;
+        return $new;
+    }
+
+
+    public function withoutAttributes(string ...$keys):static
+    {
+        $new = clone $this;
+        foreach($keys as $key) {
+            unset($new->attributes[$key]);
+        }
+        return $new;
+    }
+
+
+    public function getAttribute(string $key):mixed
+    {
+        return $this->attributes[$key] ?? null;
     }
 
 

@@ -97,7 +97,7 @@ class Response implements ResponseInterface
     }
 
 
-    public static function prepare():static
+    public static function create():static
     {
         return new static();
     }
@@ -136,15 +136,7 @@ class Response implements ResponseInterface
     }
 
 
-    public function withoutHeader($name):static
-    {
-        $new = clone $this;
-        unset($new->headers[$name]);
-        return $new;
-    }
-
-
-    public function withoutHeaders(array $names):static
+    public function withoutHeaders(string ...$names):static
     {
         $new = clone $this;
         foreach($names as $name) {
