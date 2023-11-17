@@ -6,6 +6,7 @@ namespace thegroovetrain\PiratePHP;
 class Route implements RouteInterface
 {
     use HasMiddleware;
+    use HasNormalizeUriPath;
 
     private string|null $path;
     private $handler;
@@ -35,7 +36,7 @@ class Route implements RouteInterface
     public function withPath(string $path):static
     {
         $new = clone $this;
-        $new->path = $path;
+        $new->path = $this->normalizeUriPath($path);
         return $new;
     }
 

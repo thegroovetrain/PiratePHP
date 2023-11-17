@@ -5,11 +5,13 @@ namespace thegroovetrain\PiratePHP;
 
 class Request implements RequestInterface
 {
+    use HasAttributes;
+    use HasNormalizeUriPath;
+
     private array $headers;
     private array $postData;
     private array $queryParams;
     private array $serverData;
-    private array $attributes = [];
 
 
     const HTTP_CONNECT = 'CONNECT';
@@ -37,7 +39,6 @@ class Request implements RequestInterface
         $this->headers = $this->getAllHeaders($server);
     }
 
-
     /**
      * provides a fallback for servers that do not have getallheaders()
      * 
@@ -60,28 +61,7 @@ class Request implements RequestInterface
     }
 
 
-    public function withAttribute(string $key, mixed $value):static
-    {
-        $new = clone $this;
-        $new->attributes[$key] = $value;
-        return $new;
-    }
 
-
-    public function withoutAttributes(string ...$keys):static
-    {
-        $new = clone $this;
-        foreach($keys as $key) {
-            unset($new->attributes[$key]);
-        }
-        return $new;
-    }
-
-
-    public function getAttribute(string $key):mixed
-    {
-        return $this->attributes[$key] ?? null;
-    }
 
 
     public function getQueryParams():array
@@ -134,7 +114,7 @@ class Request implements RequestInterface
 
     public function getUri():mixed
     {
-        return $this->getServerDatum('REQUEST_URI');
+        return $this->normalizeUriPath($this->getServerDatum('REQUEST_URI'));
     }
 
 

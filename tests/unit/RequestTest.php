@@ -136,7 +136,7 @@ final class RequestTest extends MockeryTestCase
     {
         $request = $this->request->withAttribute('foo', 'bar');
         $this->assertSame('bar', $request->getAttribute('foo'));
-        $request = $request->withoutAttributes('foo');
+        $request = $request->withoutAttribute('foo');
         $this->assertNull($request->getAttribute('foo'));
     }
 }

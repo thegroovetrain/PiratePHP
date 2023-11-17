@@ -27,7 +27,7 @@ interface RequestInterface
      * @param string    ...$keys
      * @return static
      */
-    public function withoutAttributes(string ...$keys):static;
+    public function withoutAttribute(string ...$keys):static;
 
     /**
      * gets the value of the named attribute
