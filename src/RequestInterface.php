@@ -6,25 +6,36 @@ namespace thegroovetrain\PiratePHP;
 interface RequestInterface
 {
     /**
-     * returns the request instance.
+     * creates a request object from the incoming request.
      * 
-     * if the request has not been instantiated, instantiates it first.
-     * You should not use the regular constructor except for testing!
-     * 
-     * @return RequestInterface
+     * @return static
      */
-    public static function receive():RequestInterface;
+    public static function create():static;
 
     /**
-     * resets the instance to null.
+     * returns a clone of the request with the added attribute.
      * 
-     * this probably should not be used unless $_GET, $_POST, or $_SERVER have been modified.
-     * And even then that probably would not happen outside of testing.
-     * So, use this at your own risk.
-     * 
-     * @return void
+     * @param string    $key
+     * @param mixed     $value
+     * @return static
      */
-    public static function reset():void;
+    public function withAttribute(string $key, mixed $value):static;
+
+    /**
+     * returns a clone of the request without the given attributes
+     * 
+     * @param string    ...$keys
+     * @return static
+     */
+    public function withoutAttributes(string ...$keys):static;
+
+    /**
+     * gets the value of the named attribute
+     * 
+     * @param string    $key
+     * @return mixed
+     */
+    public function getAttribute(string $key):mixed;
 
     /**
      * get all of the query params
@@ -100,11 +111,11 @@ interface RequestInterface
 
 
     /**
-     * returns the path hit by the request (request_uri)
+     * returns the uri hit by the request (request_uri)
      * 
      * @return string the request uri, or null if unset.
      */
-    public function getPath():mixed;
+    public function getUri():mixed;
 
     /**
      * returns the request method

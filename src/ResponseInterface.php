@@ -12,7 +12,7 @@ interface ResponseInterface
      * 
      * @return static   the instance.
      */
-    public static function prepare():static;
+    public static function create():static;
 
     /**
      * clones the current instance with the new given status code and message.
@@ -49,20 +49,12 @@ interface ResponseInterface
     public function withHeaders(array $headers):static;
 
     /**
-     * clones the current instance without the given header in its list.
-     * 
-     * @param string    $name
-     * @return static   the clone.
-     */
-    public function withoutHeader(string $name):static;
-
-    /**
      * clones the current instance without the given headers in its list.
      * 
-     * @param array     $names
+     * @param string     ...$names
      * @return static   the clone.
      */
-    public function withoutHeaders(array $names):static;
+    public function withoutHeaders(string ...$names):static;
 
     /**
      * gets the current status code

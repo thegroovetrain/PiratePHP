@@ -18,12 +18,7 @@ final class RequestTest extends MockeryTestCase
         $_SERVER['REQUEST_URI'] = '/foo/bar';
         $_SERVER['HTTP_FOO_HEADER'] = 'foo';
 
-        $this->request = Request::receive();
-    }
-
-    protected function mockertTestTearDown()
-    {
-        Request::reset();
+        $this->request = Request::create();
     }
 
 
@@ -125,14 +120,23 @@ final class RequestTest extends MockeryTestCase
     }
 
 
-    public function testGetPath():void
+    public function testGetUri():void
     {
-        $this->assertSame('/foo/bar', $this->request->getPath());
+        $this->assertSame('/foo/bar', $this->request->getUri());
     }
 
 
     public function testGetMethod():void
     {
         $this->assertSame('GET', $this->request->getMethod());
+    }
+
+
+    public function testWithAttribute():void
+    {
+        $request = $this->request->withAttribute('foo', 'bar');
+        $this->assertSame('bar', $request->getAttribute('foo'));
+        $request = $request->withoutAttributes('foo');
+        $this->assertNull($request->getAttribute('foo'));
     }
 }
