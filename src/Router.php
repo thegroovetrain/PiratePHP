@@ -6,6 +6,7 @@ namespace thegroovetrain\PiratePHP;
 class Router implements RouterInterface
 {
     use HasMiddleware;
+    use HasNormalizeUriPath;
 
     private string $basepath;
     private array $routes = [];
@@ -13,7 +14,7 @@ class Router implements RouterInterface
 
     private function __construct(string $basepath="/")
     {
-        $this->basepath = $basepath;
+        $this->basepath = $this->normalizeUriPath($basepath);
     }
 
 
@@ -56,21 +57,25 @@ class Router implements RouterInterface
         foreach ($this->routes as $route) {
             // add basepath to the route if needed
             $routePath = ($this->basepath != '' && $this->basepath != '/') ? (
-                $this->basepath . $route->getPath()
+                $this->normalizeUriPath($this->basepath . $route->getPath())
             ) : (
                 $route->getPath()
             );
             $routeMethods = $route->getMethods();
 
-            $pattern = preg_replace('/\/:([^\/]+)/', '/(?P<$1>[^/\+)', $routePath);
-            if (preg_match('#^'.$pattern.'$#', $request->getUri(), $matches)) {
-                if(in_array($request->getMethod(), $routeMethods)) {
+            $requestUri = $request->getUri();
+            $requestMethod = $request->getMethod();
+
+            $pattern = preg_replace('/\/:([^\/]+)/', '/(?P<$1>[^/]+)', $routePath);
+            if (preg_match('#^'.$pattern.'$#', $requestUri, $matches)) {
+                if(in_array($requestMethod, $routeMethods)) {
                     $params = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
                     $params = [
                         'request' => $request,
                         ...$params,
                     ];
-                    return $route->handle($request);
+                    $response = $route->handle($request);
+                    return $response;
                 }
                 // method not found
                 return Response::create()->withStatus(405);
