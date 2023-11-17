@@ -132,7 +132,7 @@ class Request implements RequestInterface
     }
 
 
-    public function getPath():mixed
+    public function getUri():mixed
     {
         return $this->getServerDatum('REQUEST_URI');
     }

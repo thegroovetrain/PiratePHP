@@ -111,11 +111,11 @@ interface RequestInterface
 
 
     /**
-     * returns the path hit by the request (request_uri)
+     * returns the uri hit by the request (request_uri)
      * 
      * @return string the request uri, or null if unset.
      */
-    public function getPath():mixed;
+    public function getUri():mixed;
 
     /**
      * returns the request method

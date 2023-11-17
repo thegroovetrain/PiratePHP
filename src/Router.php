@@ -6,7 +6,7 @@ namespace thegroovetrain\PiratePHP;
 class Router implements RouterInterface
 {
     use HasMiddleware;
-    
+
     private string $basepath;
     private array $routes = [];
 
@@ -17,9 +17,9 @@ class Router implements RouterInterface
     }
 
 
-    public static function create(string|null $basepath=null):static
+    public static function create():static
     {
-        return new static($basepath);
+        return new static();
     }
 
 
@@ -39,13 +39,6 @@ class Router implements RouterInterface
     }
 
 
-    public function withMiddleware(callable ...$middleware):static
-    {
-        $new = clone $this;
-        $new->middleware = array_merge($new->middleware, ...$middleware);
-    }
-
-
     public function getBasePath():string
     {
         return $this->basepath;
@@ -55,5 +48,35 @@ class Router implements RouterInterface
     public function getRoutes():array
     {
         return $this->routes;
+    }
+    
+    
+    private function handleRequest(RequestInterface $request):ResponseInterface
+    {
+        foreach ($this->routes as $route) {
+            // add basepath to the route if needed
+            $routePath = ($this->basepath != '' && $this->basepath != '/') ? (
+                $this->basepath . $route->getPath()
+            ) : (
+                $route->getPath()
+            );
+            $routeMethods = $route->getMethods();
+
+            $pattern = preg_replace('/\/:([^\/]+)/', '/(?P<$1>[^/\+)', $routePath);
+            if (preg_match('#^'.$pattern.'$#', $request->getUri(), $matches)) {
+                if(in_array($request->getMethod(), $routeMethods)) {
+                    $params = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
+                    $params = [
+                        'request' => $request,
+                        ...$params,
+                    ];
+                    return $route->handle($request);
+                }
+                // method not found
+                return Response::create()->withStatus(405);
+            }
+        }
+        // route not found
+        return Response::create()->withStatus(404);
     }
 }

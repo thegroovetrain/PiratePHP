@@ -72,4 +72,10 @@ class Route implements RouteInterface
     {
         return $this->methods;
     }
+
+
+    private function handleRequest(RequestInterface $request):ResponseInterface
+    {
+        return call_user_func($this->handler, $request);
+    }
 }
