@@ -29,14 +29,6 @@ interface RouterInterface
     public function withRoute(RouteInterface ...$route):static;
 
     /**
-     * returns a clone of this router with the given route group flattened into it
-     *
-     * @param RouteGroup    $group
-     * @return static
-     */
-    public function withGroup(RouteGroup $group):static;
-
-    /**
      * gets the basepath
      *
      * @return string

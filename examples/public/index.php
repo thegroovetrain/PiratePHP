@@ -5,7 +5,6 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 use thegroovetrain\PiratePHP\App;
 use thegroovetrain\PiratePHP\Router;
 use thegroovetrain\PiratePHP\Route;
-use thegroovetrain\PiratePHP\RouteGroup;
 use thegroovetrain\PiratePHP\Request;
 use thegroovetrain\PiratePHP\RequestInterface;
 use thegroovetrain\PiratePHP\Response;
@@ -118,9 +117,11 @@ $aboutRoute = Route::create()
 
 $router = $router->withRoute($aboutRoute);
 
-// --- API Route Group ---
+// --- API Routes (composed from a base route) ---
 
-$apiUsersRoute = Route::create()
+$apiBase = Route::create()->withPath('/api');
+
+$apiUsersRoute = $apiBase
     ->withPath('/users')
     ->withMethods('GET')
     ->withName('api.users')
@@ -133,11 +134,7 @@ $apiUsersRoute = Route::create()
         return Response::json($users);
     });
 
-$apiGroup = RouteGroup::create()
-    ->withPrefix('/api')
-    ->withRoute($apiUsersRoute);
-
-$router = $router->withGroup($apiGroup);
+$router = $router->withRoute($apiUsersRoute);
 
 // --- App with Middleware ---
 

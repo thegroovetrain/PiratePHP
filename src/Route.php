@@ -61,7 +61,10 @@ class Route implements RouteInterface
             }
         }
 
-        $new->path = implode('/', $validatedSegments);
+        $existingPath = $this->path ?? '';
+        $newSegments = implode('/', $validatedSegments);
+        $combined = rtrim($existingPath, '/') . '/' . ltrim($newSegments, '/');
+        $new->path = $this->normalizeUriPath($combined);
         return $new;
     }
 

@@ -88,21 +88,23 @@ $url = $router->urlFor('user.show', ['id' => '42']);
 // => "/user/42"
 ```
 
-### Route Groups
+### Route Composition
 
-Group routes that share a prefix or middleware:
+Since `withPath()` concatenates, you can create a base route with a shared prefix and middleware, then compose child routes from it:
 
 ```php
-use thegroovetrain\PiratePHP\RouteGroup;
+$apiBase = Route::create()
+    ->withPath('/api')
+    ->withMiddleware($authMiddleware);
 
-$listUsers = Route::create()
+$listUsers = $apiBase
     ->withPath('/users')
     ->withMethods('GET')
     ->withHandler(function (RequestInterface $request): ResponseInterface {
         return Response::json(['users' => []]);
     });
 
-$getUser = Route::create()
+$getUser = $apiBase
     ->withPath('/users/:id')
     ->withMethods('GET')
     ->withHandler(function (RequestInterface $request): ResponseInterface {
@@ -110,14 +112,11 @@ $getUser = Route::create()
         return Response::json(['id' => $id]);
     });
 
-$apiGroup = RouteGroup::create()
-    ->withPrefix('/api')
-    ->withMiddleware($authMiddleware)
-    ->withRoute($listUsers, $getUser);
-
-$router = Router::create()->withGroup($apiGroup);
-// Routes become /api/users and /api/users/:id
+$router = Router::create()->withRoute($listUsers, $getUser);
+// Routes are /api/users and /api/users/:id, both inherit $authMiddleware
 ```
+
+This is the core of PiratePHP's design: immutable composition. Every `withPath()` call builds on the previous path. Every `withMiddleware()` call adds to the existing stack. You compose routes like building blocks.
 
 ### Subrouters
 
@@ -463,7 +462,7 @@ Then visit [http://localhost:8000](http://localhost:8000). The example demonstra
 - Form handling with POST, validation, and flash messages
 - Dynamic route parameters
 - Named routes with `urlFor()` link generation
-- JSON API endpoints with route groups
+- JSON API endpoints with route composition
 - Static file serving (CSS)
 - Request logging to file
 

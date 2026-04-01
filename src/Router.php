@@ -46,43 +46,6 @@ class Router implements RouterInterface
     }
 
 
-    public function withGroup(RouteGroup $group):static
-    {
-        $new = clone $this;
-        $prefix = $group->getPrefix();
-        $groupMiddleware = $group->getMiddleware();
-
-        foreach ($group->getRoutes() as $route) {
-            // prepend group prefix to each route path
-            $routePath = $prefix . $route->getPath();
-            $route = $route->withPath($routePath);
-
-            // prepend group middleware to each route's middleware stack
-            if (!empty($groupMiddleware)) {
-                $existingMiddleware = $route->getMiddleware();
-                // Build a fresh route to avoid double-appending
-                $rebuilt = Route::create()
-                    ->withPath($route->getPath())
-                    ->withMethods(...$route->getMethods())
-                    ->withMiddleware(...$groupMiddleware, ...$existingMiddleware);
-                if ($route->getHandler() !== null) {
-                    $rebuilt = $rebuilt->withHandler($route->getHandler());
-                }
-                if ($route->getName() !== null) {
-                    $rebuilt = $rebuilt->withName($route->getName());
-                }
-                $route = $rebuilt;
-            }
-
-            $new->routes[] = $route;
-            if ($route->getName() !== null) {
-                $new->namedRoutes[$route->getName()] = $route;
-            }
-        }
-        return $new;
-    }
-
-
     public function getBasePath():string
     {
         return $this->basepath;
