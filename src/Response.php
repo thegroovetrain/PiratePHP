@@ -5,6 +5,8 @@ namespace thegroovetrain\PiratePHP;
 
 class Response implements ResponseInterface
 {
+    use HasAttributes;
+
     const HTTP_STATUS_CODES = [
         100 => "Continue",
         101 => "Switching Protocols",
@@ -50,7 +52,6 @@ class Response implements ResponseInterface
         422 => "Unprocessable Entity",
         423 => "Locked",
         424 => "Failed Dependency",
-        424 => "Method Failure",
         425 => "Unordered Collection",
         426 => "Upgrade Required",
         428 => "Precondition Required",
@@ -82,7 +83,7 @@ class Response implements ResponseInterface
     ];
 
 
-    private string $body;
+    private string|\Closure $body;
     private array $headers;
     private int $code;
     private string | null $message;
@@ -103,6 +104,24 @@ class Response implements ResponseInterface
     }
 
 
+    public static function json(mixed $data, int $status = 200):static
+    {
+        try {
+            $json = json_encode($data, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            return static::create()->withStatus(500)->withBody('JSON encoding error');
+        }
+        return static::create()->withStatus($status)->withBody($json)
+            ->withHeader('Content-Type', 'application/json');
+    }
+
+
+    public static function redirect(string $uri, int $status = 302):static
+    {
+        return static::create()->withStatus($status)->withHeader('Location', $uri);
+    }
+
+
     public function withStatus(int $code, string $message = null):static
     {
         $new = clone $this;
@@ -112,10 +131,14 @@ class Response implements ResponseInterface
     }
 
 
-    public function withBody(string $content):static
+    public function withBody(string|callable $content):static
     {
         $new = clone $this;
-        $new->body = $content;
+        if (is_callable($content) && !($content instanceof \Closure)) {
+            $new->body = \Closure::fromCallable($content);
+        } else {
+            $new->body = $content;
+        }
         return $new;
     }
 
@@ -123,7 +146,15 @@ class Response implements ResponseInterface
     public function withHeader(string $name, string $value):static
     {
         $new = clone $this;
-        $new->headers[$name] = $value;
+        $new->headers[$name] = [$value];
+        return $new;
+    }
+
+
+    public function withAddedHeader(string $name, string $value):static
+    {
+        $new = clone $this;
+        $new->headers[$name] = [...($this->headers[$name] ?? []), $value];
         return $new;
     }
 
@@ -131,7 +162,13 @@ class Response implements ResponseInterface
     public function withHeaders(array $headers):static
     {
         $new = clone $this;
-        $new->headers = array_merge($this->headers, $headers);
+        foreach ($headers as $name => $value) {
+            if (is_array($value)) {
+                $new->headers[$name] = $value;
+            } else {
+                $new->headers[$name] = [$value];
+            }
+        }
         return $new;
     }
 
@@ -165,7 +202,7 @@ class Response implements ResponseInterface
     }
 
 
-    public function getBody():string
+    public function getBody():string|\Closure
     {
         return $this->body;
     }
@@ -173,7 +210,16 @@ class Response implements ResponseInterface
 
     public function getHeader(string $name):mixed
     {
-        return $this->headers[$name] ?? null;
+        if (isset($this->headers[$name]) && count($this->headers[$name]) > 0) {
+            return $this->headers[$name][0];
+        }
+        return null;
+    }
+
+
+    public function getHeaderArray(string $name):array
+    {
+        return $this->headers[$name] ?? [];
     }
 
 
@@ -186,13 +232,17 @@ class Response implements ResponseInterface
     public function send():void
     {
         if(!headers_sent()) {
-            foreach($this->headers as $name => $value) {
-                header("$name: $value");
+            foreach($this->headers as $name => $values) {
+                foreach ($values as $value) {
+                    header("$name: $value", false);
+                }
             }
-            $code = $this->getStatusCode();
-            $message = $this->getStatusMessage();
-            header("$code $message");
+            http_response_code($this->getStatusCode());
         }
-        echo $this->body;
+        if ($this->body instanceof \Closure) {
+            ($this->body)();
+        } else {
+            echo $this->body;
+        }
     }
 }
