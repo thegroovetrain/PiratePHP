@@ -77,6 +77,8 @@ class Router implements RouterInterface
 
     private function handleRequest(RequestInterface $request):ResponseInterface
     {
+        $pathMatched = false;
+
         foreach ($this->routes as $route) {
             // add basepath to the route if needed
             $routePath = ($this->basepath != '' && $this->basepath != '/') ? (
@@ -102,6 +104,7 @@ class Router implements RouterInterface
             }
             $pattern = implode('/', $patternSegments);
             if (preg_match('#^'.$pattern.'$#', $requestUri, $matches)) {
+                $pathMatched = true;
                 if(in_array($requestMethod, $routeMethods)) {
                     $params = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
                     foreach ($params as $key => $value) {
@@ -110,11 +113,14 @@ class Router implements RouterInterface
                     $response = $route->handle($request);
                     return $response;
                 }
-                // method not found
-                return Response::create()->withStatus(405);
+                // path matched but method didn't — keep checking other routes
             }
         }
-        // route not found
+        // if any path matched but no method matched, return 405
+        if ($pathMatched) {
+            return Response::create()->withStatus(405);
+        }
+        // no route matched at all
         return Response::create()->withStatus(404);
     }
 }
