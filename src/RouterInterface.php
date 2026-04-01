@@ -7,14 +7,14 @@ interface RouterInterface
 {
     /**
      * creates a new router instance and returns it
-     * 
+     *
      * @return static
      */
     public static function create():static;
 
     /**
      * returns a clone of this router with given basepath
-     * 
+     *
      * @param string|null    $basepath  defaults to '/'
      * @return static
      */
@@ -22,23 +22,41 @@ interface RouterInterface
 
     /**
      * returns a clone of this router with given routes added to its list
-     * 
+     *
      * @param RouteInterface    ...$route   you can add as many as you want
      * @return static
      */
     public function withRoute(RouteInterface ...$route):static;
 
     /**
+     * returns a clone of this router with the given route group flattened into it
+     *
+     * @param RouteGroup    $group
+     * @return static
+     */
+    public function withGroup(RouteGroup $group):static;
+
+    /**
      * gets the basepath
-     * 
+     *
      * @return string
      */
     public function getBasePath():string;
 
     /**
      * gets the array of routes
-     * 
+     *
      * @return array
      */
     public function getRoutes():array;
+
+    /**
+     * generates a URL for a named route, replacing :param placeholders
+     *
+     * @param string    $name       the route name
+     * @param array     $params     the route parameters
+     * @return string   the generated URL
+     * @throws \RuntimeException if the named route is not found
+     */
+    public function urlFor(string $name, array $params = []):string;
 }

@@ -99,7 +99,7 @@ final class RequestTest extends MockeryTestCase
     public function testGetHeaders():void
     {
         $expected = [
-            'Foo-Header' => 'foo',
+            'foo-header' => 'foo',
         ];
         $this->assertSame($expected, $this->request->getHeaders());
         $this->assertSame(count($expected), count($this->request->getHeaders()));

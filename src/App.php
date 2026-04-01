@@ -36,7 +36,13 @@ class App implements AppInterface
         // sort all of the routers by the length of the basepath so that longer ones are checked first.
         $routers = $this->getSortedRouters();
         foreach ($routers as $router) {
-            if ($router->getBasePath() === substr($request->getUri(), 0, strlen($router->getBasePath()))) {
+            $basePath = $router->getBasePath();
+            if ($basePath === '/') {
+                return $router->handle($request);
+            }
+            $uriPrefix = substr($request->getUri(), 0, strlen($basePath));
+            $nextChar = substr($request->getUri(), strlen($basePath), 1);
+            if ($uriPrefix === $basePath && ($nextChar === '/' || $nextChar === '' || $nextChar === false)) {
                 return $router->handle($request);
             }
         }

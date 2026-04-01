@@ -10,6 +10,7 @@ class Router implements RouterInterface
 
     private string $basepath;
     private array $routes = [];
+    private array $namedRoutes = [];
 
 
     private function __construct(string $basepath="/")
@@ -27,7 +28,7 @@ class Router implements RouterInterface
     public function withBasePath(string $basepath):static
     {
         $new = clone $this;
-        $new->basepath = $basepath;
+        $new->basepath = $this->normalizeUriPath($basepath);
         return $new;
     }
 
@@ -36,6 +37,48 @@ class Router implements RouterInterface
     {
         $new = clone $this;
         $new->routes = [...$this->routes, ...$route];
+        foreach ($route as $r) {
+            if ($r->getName() !== null) {
+                $new->namedRoutes[$r->getName()] = $r;
+            }
+        }
+        return $new;
+    }
+
+
+    public function withGroup(RouteGroup $group):static
+    {
+        $new = clone $this;
+        $prefix = $group->getPrefix();
+        $groupMiddleware = $group->getMiddleware();
+
+        foreach ($group->getRoutes() as $route) {
+            // prepend group prefix to each route path
+            $routePath = $prefix . $route->getPath();
+            $route = $route->withPath($routePath);
+
+            // prepend group middleware to each route's middleware stack
+            if (!empty($groupMiddleware)) {
+                $existingMiddleware = $route->getMiddleware();
+                // Build a fresh route to avoid double-appending
+                $rebuilt = Route::create()
+                    ->withPath($route->getPath())
+                    ->withMethods(...$route->getMethods())
+                    ->withMiddleware(...$groupMiddleware, ...$existingMiddleware);
+                if ($route->getHandler() !== null) {
+                    $rebuilt = $rebuilt->withHandler($route->getHandler());
+                }
+                if ($route->getName() !== null) {
+                    $rebuilt = $rebuilt->withName($route->getName());
+                }
+                $route = $rebuilt;
+            }
+
+            $new->routes[] = $route;
+            if ($route->getName() !== null) {
+                $new->namedRoutes[$route->getName()] = $route;
+            }
+        }
         return $new;
     }
 
@@ -50,8 +93,25 @@ class Router implements RouterInterface
     {
         return $this->routes;
     }
-    
-    
+
+
+    public function urlFor(string $name, array $params = []):string
+    {
+        if (!isset($this->namedRoutes[$name])) {
+            throw new \RuntimeException("Named route '{$name}' not found.");
+        }
+        $route = $this->namedRoutes[$name];
+        $path = $route->getPath();
+        foreach ($params as $key => $value) {
+            $path = str_replace(':' . $key, $value, $path);
+        }
+        if ($this->basepath !== '' && $this->basepath !== '/') {
+            $path = $this->normalizeUriPath($this->basepath . $path);
+        }
+        return $path;
+    }
+
+
     private function handleRequest(RequestInterface $request):ResponseInterface
     {
         foreach ($this->routes as $route) {
@@ -70,10 +130,9 @@ class Router implements RouterInterface
             if (preg_match('#^'.$pattern.'$#', $requestUri, $matches)) {
                 if(in_array($requestMethod, $routeMethods)) {
                     $params = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
-                    $params = [
-                        'request' => $request,
-                        ...$params,
-                    ];
+                    foreach ($params as $key => $value) {
+                        $request = $request->withAttribute($key, $value);
+                    }
                     $response = $route->handle($request);
                     return $response;
                 }
