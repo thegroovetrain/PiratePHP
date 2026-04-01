@@ -29,7 +29,23 @@ class Request implements RequestInterface
     {
         return new static($_GET, $_POST, $_SERVER);
     }
-    
+
+
+    public static function createFromArrays(
+        array $query = [],
+        array $post = [],
+        array $server = [],
+        array $headers = [],
+        string $body = ''
+    ):static
+    {
+        $instance = new static($query, $post, $server);
+        if (!empty($headers)) {
+            $instance->headers = $headers;
+        }
+        return $instance;
+    }
+
 
     private function __construct(array $get = [], array $post = [], array $server = [])
     {

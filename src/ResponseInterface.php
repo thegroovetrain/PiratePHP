@@ -29,7 +29,7 @@ interface ResponseInterface
      * @param string    $contet    the new response body content.
      * @return static   the clone.
      */
-    public function withBody(string $contet):static;
+    public function withBody(string|\Closure $contet):static;
 
     /**
      * clones the current instance with the new header added to the list of headers
@@ -57,6 +57,32 @@ interface ResponseInterface
     public function withoutHeaders(string ...$names):static;
 
     /**
+     * clones the current instance with the new header value appended
+     *
+     * @param string    $name   the header name
+     * @param string    $value  the header value to append
+     * @return static   the clone
+     */
+    public function withAddedHeader(string $name, string $value):static;
+
+    /**
+     * returns a clone with the given attribute set
+     *
+     * @param string    $key
+     * @param mixed     $value
+     * @return static
+     */
+    public function withAttribute(string $key, mixed $value):static;
+
+    /**
+     * gets the value of the named attribute
+     *
+     * @param string    $key
+     * @return mixed
+     */
+    public function getAttribute(string $key):mixed;
+
+    /**
      * gets the current status code
      * 
      * @return int  the current HTTP status code
@@ -78,7 +104,7 @@ interface ResponseInterface
      * @return static   $this
      */
  
-    public function getBody():string;
+    public function getBody():string|\Closure;
 
     /**
      * gets the value of the named header.

@@ -5,6 +5,7 @@ namespace thegroovetrain\PiratePHP;
 
 class Response implements ResponseInterface
 {
+    use HasAttributes;
     const HTTP_STATUS_CODES = [
         100 => "Continue",
         101 => "Switching Protocols",
@@ -82,7 +83,7 @@ class Response implements ResponseInterface
     ];
 
 
-    private string $body;
+    private string|\Closure $body;
     private array $headers;
     private int $code;
     private string | null $message;
@@ -112,11 +113,45 @@ class Response implements ResponseInterface
     }
 
 
-    public function withBody(string $content):static
+    public function withBody(string|\Closure $content):static
     {
         $new = clone $this;
         $new->body = $content;
         return $new;
+    }
+
+
+    public function withAddedHeader(string $name, string $value):static
+    {
+        $new = clone $this;
+        if (isset($new->headers[$name])) {
+            if (is_array($new->headers[$name])) {
+                $new->headers[$name][] = $value;
+            } else {
+                $new->headers[$name] = [$new->headers[$name], $value];
+            }
+        } else {
+            $new->headers[$name] = $value;
+        }
+        return $new;
+    }
+
+
+    public static function json(mixed $data, int $status = 200):static
+    {
+        try {
+            $json = json_encode($data, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            return static::create()->withStatus(500)->withBody('JSON encoding error');
+        }
+        return static::create()->withStatus($status)->withBody($json)
+            ->withHeader('Content-Type', 'application/json');
+    }
+
+
+    public static function redirect(string $uri, int $status = 302):static
+    {
+        return static::create()->withStatus($status)->withHeader('Location', $uri);
     }
 
 
@@ -165,7 +200,7 @@ class Response implements ResponseInterface
     }
 
 
-    public function getBody():string
+    public function getBody():string|\Closure
     {
         return $this->body;
     }
@@ -187,12 +222,20 @@ class Response implements ResponseInterface
     {
         if(!headers_sent()) {
             foreach($this->headers as $name => $value) {
-                header("$name: $value");
+                if (is_array($value)) {
+                    foreach ($value as $v) {
+                        header("$name: $v", false);
+                    }
+                } else {
+                    header("$name: $value");
+                }
             }
-            $code = $this->getStatusCode();
-            $message = $this->getStatusMessage();
-            header("$code $message");
+            http_response_code($this->getStatusCode());
         }
-        echo $this->body;
+        if ($this->body instanceof \Closure) {
+            ($this->body)();
+        } else {
+            echo $this->body;
+        }
     }
 }

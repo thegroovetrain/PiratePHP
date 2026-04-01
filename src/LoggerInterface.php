@@ -1,0 +1,9 @@
+<?php declare(strict_types=1);
+
+namespace thegroovetrain\PiratePHP;
+
+
+interface LoggerInterface
+{
+    public function log(string $message): void;
+}
