@@ -9,6 +9,7 @@ class SessionMiddleware
     public const ATTR_FLASH = '_pirate_flash';
     public const ATTR_SESSION_WRITES = '_pirate_session_writes';
     public const ATTR_FLASH_WRITES = '_pirate_flash_writes';
+    private const SESSION_FLASH_KEY = '_flash';
 
     private array $cookieParams;
 
@@ -56,8 +57,8 @@ class SessionMiddleware
         $session = new PhpSession($sessionData);
 
         // Read flash data from prior session, then clear it
-        $flashData = $_SESSION['_flash'] ?? [];
-        unset($_SESSION['_flash']);
+        $flashData = $_SESSION[self::SESSION_FLASH_KEY] ?? [];
+        unset($_SESSION[self::SESSION_FLASH_KEY]);
         $flash = new PhpSession($flashData);
 
         // Attach session and flash to request
@@ -80,7 +81,7 @@ class SessionMiddleware
 
         // Write flash data for next request
         if (is_array($flashWrites)) {
-            $_SESSION['_flash'] = $flashWrites;
+            $_SESSION[self::SESSION_FLASH_KEY] = $flashWrites;
         }
 
         // Close session

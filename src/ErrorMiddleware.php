@@ -37,10 +37,12 @@ class ErrorMiddleware
                 try {
                     return ($this->errorHandler)($e, $request);
                 } catch (\Throwable $handlerError) {
-                    return Response::create()->withStatus(500)->withBody('Internal Server Error');
+                    return Response::create()->withStatus(500)->withBody('Internal Server Error')
+                        ->withHeader('Content-Type', 'text/plain');
                 }
             }
-            return Response::create()->withStatus(500)->withBody('Internal Server Error');
+            return Response::create()->withStatus(500)->withBody('Internal Server Error')
+                ->withHeader('Content-Type', 'text/plain');
         }
     }
 }

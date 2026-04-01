@@ -69,10 +69,12 @@ class StaticFileMiddleware
     {
         $uri = $request->getUri();
 
-        // Block dotfiles (hidden files like .htaccess, .env)
-        $basename = basename($uri);
-        if (str_starts_with($basename, '.')) {
-            return $next($request);
+        // Block dotfiles (hidden files/directories like .htaccess, .env, .hidden/)
+        $segments = explode('/', $uri);
+        foreach ($segments as $segment) {
+            if ($segment !== '' && str_starts_with($segment, '.')) {
+                return $next($request);
+            }
         }
 
         $filePath = $this->baseDir . $uri;
@@ -98,8 +100,9 @@ class StaticFileMiddleware
 
         return Response::create()
             ->withHeader('Content-Type', $contentType)
-            ->withBody(\Closure::fromCallable(function () use ($realFile) {
+            ->withHeader('Content-Length', (string) filesize($realFile))
+            ->withBody(function () use ($realFile) {
                 readfile($realFile);
-            }));
+            });
     }
 }

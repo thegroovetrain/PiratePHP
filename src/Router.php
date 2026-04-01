@@ -66,7 +66,7 @@ class Router implements RouterInterface
         $route = $this->namedRoutes[$name];
         $path = $route->getPath();
         foreach ($params as $key => $value) {
-            $path = str_replace(':' . $key, $value, $path);
+            $path = str_replace(':' . $key, rawurlencode($value), $path);
         }
         if ($this->basepath !== '' && $this->basepath !== '/') {
             $path = $this->normalizeUriPath($this->basepath . $path);
@@ -89,7 +89,18 @@ class Router implements RouterInterface
             $requestUri = $request->getUri();
             $requestMethod = $request->getMethod();
 
-            $pattern = preg_replace('/\/:([^\/]+)/', '/(?P<$1>[^/]+)', $routePath);
+            // Escape literal segments and convert :param to named capture groups
+            $routeSegments = explode('/', $routePath);
+            $patternSegments = [];
+            foreach ($routeSegments as $seg) {
+                if ($seg !== '' && str_starts_with($seg, ':')) {
+                    $paramName = substr($seg, 1);
+                    $patternSegments[] = '(?P<' . $paramName . '>[^/]+)';
+                } else {
+                    $patternSegments[] = preg_quote($seg, '#');
+                }
+            }
+            $pattern = implode('/', $patternSegments);
             if (preg_match('#^'.$pattern.'$#', $requestUri, $matches)) {
                 if(in_array($requestMethod, $routeMethods)) {
                     $params = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);

@@ -37,10 +37,18 @@ class PhpRenderer implements RendererInterface
     public function render(string $template, array $data = []): string
     {
         $file = $this->basePath . '/' . $template;
+        $realBase = realpath($this->basePath);
+        $realFile = realpath($file);
 
-        if (!is_file($file)) {
+        if ($realBase === false || $realFile === false || !str_starts_with($realFile, $realBase)) {
             throw new TemplateNotFoundException($template);
         }
+
+        if (!is_file($realFile)) {
+            throw new TemplateNotFoundException($template);
+        }
+
+        $file = $realFile;
 
         extract($data, EXTR_SKIP);
 

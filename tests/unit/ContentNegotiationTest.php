@@ -36,7 +36,7 @@ final class ContentNegotiationTest extends TestCase
         $response = $middleware($request, function (RequestInterface $req): ResponseInterface {
             return Response::create()
                 ->withStatus(200)
-                ->withAttribute('_data', ['name' => 'Alice']);
+                ->withAttribute(ContentNegotiationMiddleware::ATTR_DATA, ['name' => 'Alice']);
         });
 
         $this->assertSame(200, $response->getStatusCode());
@@ -53,7 +53,7 @@ final class ContentNegotiationTest extends TestCase
         $response = $middleware($request, function (RequestInterface $req): ResponseInterface {
             return Response::create()
                 ->withStatus(200)
-                ->withAttribute('_data', ['title' => 'Home']);
+                ->withAttribute(ContentNegotiationMiddleware::ATTR_DATA, ['title' => 'Home']);
         });
 
         $this->assertSame(200, $response->getStatusCode());
@@ -92,7 +92,7 @@ final class ContentNegotiationTest extends TestCase
         $response = $middleware($request, function (RequestInterface $req): ResponseInterface {
             return Response::create()
                 ->withStatus(200)
-                ->withAttribute('_data', ['foo' => 'bar']);
+                ->withAttribute(ContentNegotiationMiddleware::ATTR_DATA, ['foo' => 'bar']);
         });
 
         $this->assertSame(500, $response->getStatusCode());
