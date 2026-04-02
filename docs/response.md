@@ -174,7 +174,7 @@ If you do not call `withSession()`, the existing `$_SESSION` data is left unchan
 
 ## Response Attributes
 
-Responses have attributes just like requests. This is how handlers communicate data back to middleware (for example, content negotiation):
+Responses have attributes just like requests. This is how handlers communicate data back to middleware:
 
 ```php
 $response = $response->withAttribute('key', 'value');

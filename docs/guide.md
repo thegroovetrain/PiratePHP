@@ -126,7 +126,7 @@ $dashboard = $protectedBase->withPath('/dashboard')->withMethods('GET')
     });
 ```
 
-PiratePHP includes built-in middleware for error handling (`ErrorMiddleware`), logging (`LoggingMiddleware`), rate limiting (`RateLimitMiddleware`), and content negotiation (`ContentNegotiationMiddleware`). Sessions are built into the Request/Response lifecycle -- see [Sessions & Flash Messages](sessions.md).
+PiratePHP includes built-in middleware for error handling (`ErrorMiddleware`), logging (`LoggingMiddleware`), and rate limiting (`RateLimitMiddleware`). Sessions are built into the Request/Response lifecycle -- see [Sessions & Flash Messages](sessions.md).
 
 ---
 

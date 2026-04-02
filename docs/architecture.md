@@ -60,7 +60,6 @@ This pattern appears in every component:
 | `PhpSession`                   | `with()`, `without()`                                                |
 | `ErrorMiddleware`              | `withErrorHandler()`                                                 |
 | `RateLimitMiddleware`          | `withMaxRequests()`, `withWindowSeconds()`, `withStoragePath()`      |
-| `ContentNegotiationMiddleware` | `withRenderer()`, `withDefaultTemplate()`                            |
 | `FileLogger`                   | `withFilePath()`                                                     |
 | `PhpRenderer`                  | `withBasePath()`                                                     |
 
@@ -291,8 +290,7 @@ syntax.
 |  (all are invokable: __invoke($request, $next))                  |
 |                                                                   |
 |  ErrorMiddleware              LoggingMiddleware                   |
-|  RateLimitMiddleware          ContentNegotiationMiddleware        |
-|  ContentNegotiationMiddleware                                     |
+|  RateLimitMiddleware                                              |
 +------------------------------------------------------------------+
 
 +------------------------------------------------------------------+
@@ -623,7 +621,6 @@ All tests live in `tests/unit/` and follow the pattern `{ClassName}Test.php`:
 | `ResponseSessionTest.php`        | Response session/flash writes                |
 | `ErrorMiddlewareTest.php`         | Error catching, custom handlers             |
 | `RateLimitMiddlewareTest.php`     | Rate limiting behavior                      |
-| `ContentNegotiationTest.php`      | JSON vs HTML response based on Accept       |
 | `LoggingMiddlewareTest.php`       | Request logging                             |
 | `PhpRendererTest.php`             | Template rendering, path traversal          |
 | `PhpSessionTest.php`              | Immutable session object                    |

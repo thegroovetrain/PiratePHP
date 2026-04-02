@@ -260,23 +260,6 @@ File-based per-IP rate limiting with a fixed time window.
 | `withStoragePath` | `public function withStoragePath(string $storagePath): static` | Returns clone with new storage directory |
 | `__invoke` | `public function __invoke(RequestInterface $request, callable $next): ResponseInterface` | Returns 429 if limit exceeded; degrades gracefully on storage failure |
 
-### `ContentNegotiationMiddleware`
-
-Renders response data as JSON or HTML based on the `Accept` header.
-
-**Constants:**
-
-| Constant | Value | Description |
-|----------|-------|-------------|
-| `ATTR_DATA` | `'_pirate_data'` | Response attribute key; set this to trigger content negotiation |
-
-| Method | Signature | Description |
-|--------|-----------|-------------|
-| `create` | `public static function create(RendererInterface $renderer, string $defaultTemplate): static` | Factory |
-| `withRenderer` | `public function withRenderer(RendererInterface $renderer): static` | Returns clone with new renderer |
-| `withDefaultTemplate` | `public function withDefaultTemplate(string $defaultTemplate): static` | Returns clone with new default template |
-| `__invoke` | `public function __invoke(RequestInterface $request, callable $next): ResponseInterface` | If `ATTR_DATA` is set on the response: returns JSON for `Accept: application/json`, otherwise renders the template |
-
 ---
 
 ## 7. Session

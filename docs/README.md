@@ -25,7 +25,6 @@ See the [Middleware Overview](middleware/README.md) for how the pipeline works a
 | Error Handling | [middleware/error.md](middleware/error.md) |
 | Logging | [middleware/logging.md](middleware/logging.md) |
 | Rate Limiting | [middleware/rate-limiting.md](middleware/rate-limiting.md) |
-| Content Negotiation | [middleware/content-negotiation.md](middleware/content-negotiation.md) |
 
 ## More
 

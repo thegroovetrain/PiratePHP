@@ -254,8 +254,6 @@ $app = App::create()
 
 **RateLimitMiddleware third.** Rate-limited requests are rejected early, saving the cost of file I/O or database queries.
 
-**ContentNegotiationMiddleware** is typically added at the router or route level, not app-level, because it is specific to API routes that return structured data.
-
 ---
 
 ## Middleware and Route Composition
@@ -327,16 +325,14 @@ The middleware stack for `$adminDelete` is `[$authMiddleware, $adminOnly, $audit
 Remember that middleware runs at three levels. You can use router-level middleware for shared concerns and route-level composition for finer control:
 
 ```php
-$contentNeg = ContentNegotiationMiddleware::create($renderer, 'api.php');
-
 $apiRouter = Router::create()
     ->withBasePath('/api')
-    ->withMiddleware($contentNeg)  // all routes in this router get content negotiation
+    ->withMiddleware($authMiddleware)  // all routes in this router get auth
     ->withRoute($getUsers, $getUser, $createUser);
 
 $webRouter = Router::create()
     ->withBasePath('/')
-    ->withRoute($homePage, $aboutPage);  // no content negotiation here
+    ->withRoute($homePage, $aboutPage);  // no auth here
 
 $app = App::create()
     ->withMiddleware(
@@ -349,7 +345,7 @@ $app = App::create()
 In this setup:
 
 - **Every request** passes through ErrorMiddleware and LoggingMiddleware (app level).
-- **Requests to `/api/*`** additionally pass through ContentNegotiationMiddleware (router level).
+- **Requests to `/api/*`** additionally pass through the auth middleware (router level).
 - **Individual routes** can add their own middleware (route level) via the composition pattern shown above.
 
 This three-level system, combined with immutable route composition, gives you the flexibility of route groups without any special grouping API.
@@ -358,13 +354,12 @@ This three-level system, combined with immutable route composition, gives you th
 
 ## Built-in Middleware
 
-PiratePHP ships with four middleware classes. Each has its own documentation page:
+PiratePHP ships with three middleware classes. Each has its own documentation page:
 
 | Middleware | Purpose |
 |---|---|
 | [ErrorMiddleware](error.md) | Catches exceptions and returns clean error responses |
 | [LoggingMiddleware](logging.md) | Logs request method, URI, status, and timing |
 | [RateLimitMiddleware](rate-limiting.md) | Per-IP rate limiting with file-based storage |
-| [ContentNegotiationMiddleware](content-negotiation.md) | Transforms data to JSON or HTML based on Accept header |
 
 Note: Sessions are not middleware in PiratePHP. They are built into the Request/Response lifecycle. See [Sessions & Flash Messages](../sessions.md).
