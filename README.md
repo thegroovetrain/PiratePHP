@@ -152,9 +152,9 @@ $app = App::create()
 
 | Document | What it covers |
 |----------|---------------|
-| [Tutorial Guide](docs/guide.md) | Step-by-step: build an app from zero through every feature |
+| [Quick Start Guide](docs/guide.md) | Install, build your first app in 5 minutes |
+| [Full Documentation](docs/README.md) | Complete docs index with all topics |
 | [API Reference](docs/api.md) | Every class, method, and parameter |
-| [Middleware Deep Dive](docs/middleware.md) | The pipeline, custom middleware, all 6 built-in middleware |
 | [Architecture](docs/architecture.md) | Design philosophy, request lifecycle, security model |
 
 ## Example App
