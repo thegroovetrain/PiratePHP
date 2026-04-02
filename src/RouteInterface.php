@@ -9,14 +9,14 @@ interface RouteInterface
 {
     /**
      * creates a new route.
-     * 
+     *
      * @return static
      */
     public static function create():static;
 
     /**
      * returns a clone with given path
-     * 
+     *
      * @param string    $path
      * @return static
      */
@@ -24,7 +24,7 @@ interface RouteInterface
 
     /**
      * returns a clone with given handler
-     * 
+     *
      * @param callable  $handler
      * @return static
      */
@@ -32,7 +32,7 @@ interface RouteInterface
 
     /**
      * returns a clone with given method(s) appended.
-     * 
+     *
      * @param string    $methods    you may add any number of these.
      * @return static
      */
@@ -40,37 +40,52 @@ interface RouteInterface
 
     /**
      * returns a clone with given middleware added.
-     * 
+     *
      * @param callable  $middleware     you may add any number of these.
      * @return static
      */
     public function withMiddleware(callable ...$middleware):static;
 
     /**
+     * returns a clone with given name
+     *
+     * @param string    $name
+     * @return static
+     */
+    public function withName(string $name):static;
+
+    /**
      * gets the route's path
-     * 
+     *
      * @return string
      */
     public function getPath():string;
 
     /**
      * gets the handler
-     * 
+     *
      * @return callable|null
      */
     public function getHandler():mixed;
 
     /**
      * gets the list of methods
-     * 
+     *
      * @return array
      */
     public function getMethods():array;
 
     /**
      * gets the list of middleware
-     * 
+     *
      * @return array
      */
     public function getMiddleware():array;
+
+    /**
+     * gets the route name
+     *
+     * @return string|null
+     */
+    public function getName():string|null;
 }

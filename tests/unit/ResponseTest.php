@@ -57,16 +57,16 @@ final class ResponseTest extends MockeryTestCase
             "Bat" => "batvalue",
         ]);
         $this->assertSame([
-            "Foo" => "foovalue",
-            "Bar" => "barvalue",
-            "Baz" => "bazvalue",
-            "Bat" => "batvalue",
+            "Foo" => ["foovalue"],
+            "Bar" => ["barvalue"],
+            "Baz" => ["bazvalue"],
+            "Bat" => ["batvalue"],
         ], $response->getHeaders());
         $this->assertSame("foovalue", $response->getHeader('Foo'));
         $response = $response->withoutHeaders('Bar');
         $response = $response->withoutHeaders('Baz', 'Bat');
         $this->assertSame([
-            "Foo" => "foovalue",
+            "Foo" => ["foovalue"],
         ], $response->getHeaders());
         $this->assertSame(null, $response->getHeader("Bar"));
     }
