@@ -28,11 +28,13 @@ public static function createFromArrays(
     array $post = [],
     array $server = [],
     array $headers = [],
-    string $body = ''
+    string $body = '',
+    array $session = [],
+    array $flash = []
 ): static
 ```
 
-The `server` array should include at least `REQUEST_URI` and `REQUEST_METHOD` for routing to work. When `headers` is provided, those headers are used directly (normalized to lowercase keys). When `headers` is empty, headers are extracted from the `server` array.
+The `server` array should include at least `REQUEST_URI` and `REQUEST_METHOD` for routing to work. When `headers` is provided, those headers are used directly (normalized to lowercase keys). When `headers` is empty, headers are extracted from the `server` array. The `session` and `flash` parameters inject session and flash data without starting a real PHP session.
 
 ---
 
@@ -253,9 +255,73 @@ class AppTest extends TestCase
 
 ---
 
+## Testing Sessions and Flash Messages
+
+Use the `session:` and `flash:` parameters of `createFromArrays()` to inject session data for testing:
+
+### Testing Session Reads
+
+```php
+$request = Request::createFromArrays(
+    server: ['REQUEST_URI' => '/dashboard', 'REQUEST_METHOD' => 'GET'],
+    session: ['username' => 'blackbeard', 'user_id' => 42],
+    flash: ['notice' => 'Welcome back!']
+);
+
+$session = $request->getSession();
+assert($session->get('username') === 'blackbeard');
+assert($session->get('user_id') === 42);
+
+$flash = $request->getFlash();
+assert($flash->get('notice') === 'Welcome back!');
+```
+
+### Testing Session Writes
+
+```php
+$handler = function (RequestInterface $request): ResponseInterface {
+    $session = $request->getSession()
+        ->with('visits', ($request->getSession()->get('visits', 0)) + 1);
+    return Response::create()
+        ->withBody('OK')
+        ->withSession($session);
+};
+
+$request = Request::createFromArrays(
+    server: ['REQUEST_URI' => '/', 'REQUEST_METHOD' => 'GET'],
+    session: ['visits' => 5]
+);
+
+$response = $handler($request);
+
+// Inspect the session attached to the response
+$updatedSession = $response->getSession();
+assert($updatedSession->get('visits') === 6);
+```
+
+### Testing Flash Writes
+
+```php
+$handler = function (RequestInterface $request): ResponseInterface {
+    return Response::redirect('/dashboard')
+        ->withFlash(['success' => 'Profile updated!']);
+};
+
+$request = Request::createFromArrays(
+    server: ['REQUEST_URI' => '/form', 'REQUEST_METHOD' => 'POST']
+);
+
+$response = $handler($request);
+assert($response->getFlashData() === ['success' => 'Profile updated!']);
+assert($response->getStatusCode() === 302);
+```
+
+---
+
 ## Related Pages
 
 - [Request](request.md) -- The full Request API including `createFromArrays()`
 - [Response](response.md) -- Inspecting response status codes, headers, and bodies
+- [Sessions & Flash Messages](sessions.md) -- Full session lifecycle documentation
 - [Routing](routing.md) -- How routes and routers match requests
 - [Getting Started](getting-started.md) -- The handler contract

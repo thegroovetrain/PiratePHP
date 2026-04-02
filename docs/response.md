@@ -139,9 +139,42 @@ $all = $response->getHeaders();                      // All headers
 
 ---
 
+## Sessions and Flash Messages
+
+Attach session data and flash messages to the response. `Response::send()` writes them back to `$_SESSION` before emitting headers and body.
+
+```php
+// Write session data
+$session = $request->getSession()
+    ->with('username', 'blackbeard')
+    ->with('user_id', 42);
+
+$response = Response::create()
+    ->withBody('Logged in!')
+    ->withSession($session);
+
+// Write flash messages for the next request
+$response = Response::redirect('/dashboard')
+    ->withFlash(['success' => 'Welcome aboard!']);
+
+// Combine both
+$response = Response::redirect('/dashboard')
+    ->withSession($session)
+    ->withFlash(['success' => 'Welcome aboard!']);
+```
+
+- `withSession(SessionInterface $session): static` -- Returns a new response with session data to persist. When `send()` is called, the session's data replaces `$_SESSION`.
+- `getSession(): ?SessionInterface` -- Returns the attached session, or `null` if none was set.
+- `withFlash(array $data): static` -- Returns a new response with flash data for the next request. When `send()` is called, the data is written to `$_SESSION['_flash']`.
+- `getFlashData(): ?array` -- Returns the attached flash data array, or `null` if none was set.
+
+If you do not call `withSession()`, the existing `$_SESSION` data is left unchanged. See [Sessions & Flash Messages](sessions.md) for the full session lifecycle.
+
+---
+
 ## Response Attributes
 
-Responses have attributes just like requests. This is how handlers communicate data back to middleware (for example, session writes):
+Responses have attributes just like requests. This is how handlers communicate data back to middleware (for example, content negotiation):
 
 ```php
 $response = $response->withAttribute('key', 'value');
@@ -157,5 +190,6 @@ $value = $response->getAttribute('key');
 
 - [Getting Started](getting-started.md) -- The handler contract and how responses fit in
 - [Request](request.md) -- The request object your handler receives
+- [Sessions & Flash Messages](sessions.md) -- Session lifecycle and flash messages
 - [Cookies](cookies.md) -- Writing cookies via `withAddedHeader('Set-Cookie', ...)`
 - [Templates](templates.md) -- Rendering HTML to use as the response body

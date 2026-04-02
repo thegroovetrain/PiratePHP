@@ -139,9 +139,9 @@ $app = App::create()
 - **Route composition** ... `withPath()` concatenates. Create a base route, compose children with shared prefix + middleware.
 - **Named routes** ... `withName()` + `urlFor()` for URL generation.
 - **JSON support** ... `Response::json()`, `Request::getParsedBody()` for JSON request bodies.
-- **6 built-in middleware** ... ErrorMiddleware, LoggingMiddleware, SessionMiddleware, StaticFileMiddleware, RateLimitMiddleware, ContentNegotiationMiddleware.
+- **5 built-in middleware** ... ErrorMiddleware, LoggingMiddleware, StaticFileMiddleware, RateLimitMiddleware, ContentNegotiationMiddleware.
 - **Template rendering** ... `PhpRenderer` with plain PHP templates. No new syntax to learn.
-- **Sessions & flash messages** ... immutable session reads, write-back via response attributes.
+- **Sessions & flash messages** ... first-class session support in Request/Response. Immutable reads via `getSession()`, writes via `withSession()` and `withFlash()`.
 - **Cookies** ... `CookieJar` for reading, `withAddedHeader('Set-Cookie', ...)` for writing.
 - **Static file serving** ... with path traversal protection and Content-Length headers.
 - **Rate limiting** ... per-IP throttling with file-based storage and flock atomicity.

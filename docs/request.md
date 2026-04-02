@@ -116,6 +116,27 @@ Route parameters (`:id`, `:name`, etc.) are automatically attached as attributes
 
 ---
 
+## Sessions and Flash Messages
+
+Access session data and flash messages directly from the request:
+
+```php
+$session = $request->getSession();
+$flash = $request->getFlash();
+
+$username = $session->get('username', 'Guest');
+$notice = $flash->get('notice');
+```
+
+- `getSession(): SessionInterface` -- Returns the current session data as an immutable `PhpSession` object.
+- `getFlash(): SessionInterface` -- Returns flash data from the previous request as an immutable `PhpSession` object.
+
+Both return objects with `get()`, `has()`, and `all()` methods for reading, and `with()` and `without()` methods for building updated sessions.
+
+To write session data, build an updated session using `with()` / `without()` and attach it to the response. See [Sessions & Flash Messages](sessions.md) for the full pattern.
+
+---
+
 ## Creating Requests for Testing
 
 `Request::createFromArrays()` lets you build request objects without relying on PHP superglobals. This is essential for testing:
@@ -140,9 +161,13 @@ public static function createFromArrays(
     array $post = [],
     array $server = [],
     array $headers = [],
-    string $body = ''
+    string $body = '',
+    array $session = [],
+    array $flash = []
 ): static
 ```
+
+The `session` and `flash` parameters let you inject session and flash data for testing without starting a real PHP session.
 
 For more testing patterns, see [Testing](testing.md).
 
@@ -153,4 +178,5 @@ For more testing patterns, see [Testing](testing.md).
 - [Getting Started](getting-started.md) -- The handler contract and how requests flow through the app
 - [Routing](routing.md) -- How route parameters become request attributes
 - [Response](response.md) -- Building the response your handler returns
+- [Sessions & Flash Messages](sessions.md) -- Reading and writing session data
 - [Testing](testing.md) -- Creating test requests with `createFromArrays()`

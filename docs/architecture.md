@@ -56,8 +56,8 @@ This pattern appears in every component:
 | `Router`                       | `withBasePath()`, `withRoute()`, `withMiddleware()`                  |
 | `Route`                        | `withPath()`, `withHandler()`, `withMethods()`, `withMiddleware()`, `withName()` |
 | `Request`                      | `withAttribute()`, `withoutAttribute()`                              |
-| `Response`                     | `withStatus()`, `withBody()`, `withHeader()`, `withAddedHeader()`, `withHeaders()`, `withoutHeaders()`, `withAttribute()`, `withoutAttribute()` |
-| `SessionMiddleware`            | `withCookieParams()`                                                 |
+| `Response`                     | `withStatus()`, `withBody()`, `withHeader()`, `withAddedHeader()`, `withHeaders()`, `withoutHeaders()`, `withAttribute()`, `withoutAttribute()`, `withSession()`, `withFlash()` |
+| `PhpSession`                   | `with()`, `without()`                                                |
 | `ErrorMiddleware`              | `withErrorHandler()`                                                 |
 | `StaticFileMiddleware`         | `withBaseDir()`, `withMimeTypes()`                                   |
 | `RateLimitMiddleware`          | `withMaxRequests()`, `withWindowSeconds()`, `withStoragePath()`      |
@@ -106,7 +106,7 @@ $postsRoute = $apiRoute->withPath('/posts')->withMethods('GET')
          v
 +----------------------------+
 |  App-level Middleware      |  e.g. ErrorMiddleware, LoggingMiddleware,
-|  (processed recursively)  |       SessionMiddleware, RateLimitMiddleware
+|  (processed recursively)  |       RateLimitMiddleware, StaticFileMiddleware
 |                            |
 |  Each calls $next($req)   |
 |  to pass control forward  |
@@ -291,9 +291,9 @@ syntax.
 |                     MIDDLEWARE CLASSES                             |
 |  (all are invokable: __invoke($request, $next))                  |
 |                                                                   |
-|  ErrorMiddleware              SessionMiddleware                   |
-|  StaticFileMiddleware         RateLimitMiddleware                 |
-|  LoggingMiddleware            ContentNegotiationMiddleware        |
+|  ErrorMiddleware              StaticFileMiddleware                |
+|  RateLimitMiddleware          LoggingMiddleware                   |
+|  ContentNegotiationMiddleware                                     |
 +------------------------------------------------------------------+
 
 +------------------------------------------------------------------+
@@ -383,7 +383,6 @@ instance, so each level runs its own pipeline independently:
 |  Runs first. Wraps everything. Good for:         |
 |  - Error handling                                 |
 |  - Logging                                        |
-|  - Session management                             |
 |  - Rate limiting                                  |
 |  - Static file serving                            |
 |                                                   |
@@ -430,74 +429,77 @@ PHP sessions are inherently global mutable state: `session_start()` opens a file
 `$_SESSION` is a superglobal array, and `session_write_close()` flushes it. This
 directly conflicts with PiratePHP's immutability model.
 
-### How SessionMiddleware bridges the gap
+### How Request and Response bridge the gap
 
-`SessionMiddleware` (src/SessionMiddleware.php) solves this with a read-forward /
-write-back pattern:
+Sessions are first-class citizens of the Request/Response lifecycle. There is no
+session middleware. Instead, `Request::create()` starts the session and reads data
+into immutable objects, and `Response::send()` writes changes back.
 
 ```
-  Incoming Request
+  Request::create()
        |
        v
-  1. session_start()                         (line 49)
-     Read $_SESSION into PhpSession          (line 56-57)
-     Read $_SESSION['_flash'] into flash     (line 60-61)
-     Clear flash from $_SESSION              (line 62)
+  1. session_start() with secure defaults
+     Read $_SESSION into PhpSession
+     Read $_SESSION['_flash'] into flash PhpSession
+     Clear flash from $_SESSION
        |
        v
-  2. Attach session + flash to Request       (line 65-66)
-     as immutable attributes:
-       ATTR_SESSION  = '_pirate_session'
-       ATTR_FLASH    = '_pirate_flash'
+  2. Request carries session + flash as properties:
+       $request->getSession()  => PhpSession
+       $request->getFlash()    => PhpSession
        |
        v
-  3. Call $next($request)                    (line 69)
-     Handler runs. It reads session data
-     from the immutable PhpSession objects.
-     To write, it attaches write-back
-     attributes to the Response:
-       ATTR_SESSION_WRITES = '_pirate_session_writes'
-       ATTR_FLASH_WRITES   = '_pirate_flash_writes'
+  3. Request flows through middleware and handlers.
+     Handler reads session via $request->getSession().
+     Handler builds updated session with ->with() / ->without().
+     Handler attaches updated session to Response:
+       $response->withSession($updatedSession)
+       $response->withFlash([...])
        |
        v
-  4. Read write-back attributes from         (lines 72-73)
-     the Response.
-     Write to $_SESSION                      (lines 76-79)
-     Write flash to $_SESSION['_flash']      (lines 82-85)
-     session_write_close()                   (line 88)
-       |
-       v
-  Return Response
+  4. Response::send()
+     Write session data to $_SESSION
+     Write flash to $_SESSION['_flash']
+     session_write_close()
+     Emit headers and body.
 ```
 
-### PhpSession is read-only
+### PhpSession is immutable
 
-`PhpSession` (src/PhpSession.php) has only `get()`, `has()`, and `all()` methods. There
-is no `set()` or `put()`. It is a snapshot of the session state at the time the middleware
-read it.
+`PhpSession` (src/PhpSession.php) has `get()`, `has()`, `all()` for reading, and
+`with()` and `without()` for building new instances. The `with()` and `without()`
+methods clone the object and return the modified copy, following PiratePHP's standard
+immutable pattern.
 
 ### Writing session data
 
-Handlers write session data by setting attributes on the Response:
+Handlers write session data by building an updated session from the request's session
+and attaching it to the response:
 
 ```php
+$session = $request->getSession()
+    ->with('user', 'alice')
+    ->without('guest_token');
+
 return Response::create()
-    ->withAttribute(SessionMiddleware::ATTR_SESSION_WRITES, ['user' => 'alice'])
-    ->withAttribute(SessionMiddleware::ATTR_FLASH_WRITES, ['success' => 'Saved!']);
+    ->withBody('OK')
+    ->withSession($session)
+    ->withFlash(['success' => 'Saved!']);
 ```
 
-The `SessionMiddleware` reads these attributes after `$next()` returns and persists them
-to `$_SESSION`.
+`Response::send()` writes the session data to `$_SESSION` and flash data to
+`$_SESSION['_flash']`, then calls `session_write_close()`.
 
 ### Constraints
 
-- Session reads reflect the state at the **start** of the request. If a handler writes
-  `['user' => 'alice']` to session writes, that value is not visible in the `PhpSession`
-  object during the same request.
+- Session reads reflect the state at the **start** of the request. Changes made with
+  `with()` produce a new `PhpSession` object; they are not visible in the original
+  `$request->getSession()`.
 - Flash data is one-shot: read from the prior request, cleared immediately, and new flash
   data is written for the next request.
 - Session cookie defaults are secure: `httponly => true`, `samesite => 'Lax'`. The
-  `secure` flag is auto-detected from `$_SERVER['HTTPS']` (line 47).
+  `secure` flag is auto-detected from `$_SERVER['HTTPS']`.
 
 ---
 
@@ -545,17 +547,17 @@ file and pass through to the next handler.
 
 ### Session cookie defaults
 
-`SessionMiddleware` sets secure cookie defaults (src/SessionMiddleware.php, lines 18-23):
+`Request::create()` sets secure cookie defaults before starting the session
+(src/Request.php, lines 36-41):
 
 - `httponly => true` -- JavaScript cannot access the session cookie, preventing XSS-based
   session theft.
 - `samesite => 'Lax'` -- the cookie is not sent on cross-origin POST requests, providing
   baseline CSRF protection.
-- `secure` -- auto-detected from `$_SERVER['HTTPS']` at runtime (line 47). If HTTPS is
-  active, the cookie is only sent over encrypted connections.
+- `secure` -- auto-detected from `$_SERVER['HTTPS']` at runtime. If HTTPS is active, the
+  cookie is only sent over encrypted connections.
 
-These defaults can be overridden via `withCookieParams()` but the out-of-box configuration
-is secure.
+These defaults are always applied. There is no configuration method to override them.
 
 ### Rate limiting
 
@@ -587,14 +589,16 @@ public static function createFromArrays(
     array $post = [],
     array $server = [],
     array $headers = [],
-    string $body = ''
+    string $body = '',
+    array $session = [],
+    array $flash = []
 ):static
 ```
 
 This factory builds a `Request` from plain arrays instead of PHP superglobals (`$_GET`,
-`$_POST`, `$_SERVER`). This means the entire framework can be tested without a web server,
-without modifying superglobals, and without running in a separate process (except for
-session tests which necessarily touch global session state).
+`$_POST`, `$_SERVER`). The `session` and `flash` parameters inject session and flash data
+without starting a real PHP session. This means the entire framework -- including session
+handling -- can be tested without a web server and without modifying superglobals.
 
 ### Testing the full App pipeline
 
@@ -641,7 +645,8 @@ All tests live in `tests/unit/` and follow the pattern `{ClassName}Test.php`:
 | `ResponseHeaderArrayTest.php`     | Multi-value header support                  |
 | `ResponseAttributeTest.php`       | Response attribute get/set                  |
 | `MiddlewareTest.php`              | HasMiddleware trait pipeline behavior        |
-| `SessionMiddlewareTest.php`       | Session read/write lifecycle                |
+| `RequestSessionTest.php`          | Request session/flash reads                 |
+| `ResponseSessionTest.php`        | Response session/flash writes                |
 | `StaticFileMiddlewareTest.php`    | Static file serving, path traversal         |
 | `ErrorMiddlewareTest.php`         | Error catching, custom handlers             |
 | `RateLimitMiddlewareTest.php`     | Rate limiting behavior                      |
@@ -649,6 +654,7 @@ All tests live in `tests/unit/` and follow the pattern `{ClassName}Test.php`:
 | `LoggingMiddlewareTest.php`       | Request logging                             |
 | `PhpRendererTest.php`             | Template rendering, path traversal          |
 | `PhpSessionTest.php`              | Immutable session object                    |
+| `PhpSessionWriteTest.php`        | PhpSession with() and without() methods     |
 | `CookieJarTest.php`              | Cookie parsing and access                   |
 | `FileLoggerTest.php`              | File-based logging                          |
 

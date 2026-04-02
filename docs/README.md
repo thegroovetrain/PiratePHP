@@ -14,6 +14,7 @@ The immutable PHP micro-framework. Functional composition all the way down.
 | Routing | [routing.md](routing.md) |
 | Request | [request.md](request.md) |
 | Response | [response.md](response.md) |
+| Sessions & Flash | [sessions.md](sessions.md) |
 
 ## Middleware
 
@@ -23,7 +24,6 @@ See the [Middleware Overview](middleware/README.md) for how the pipeline works a
 |-----------|----------|
 | Error Handling | [middleware/error.md](middleware/error.md) |
 | Logging | [middleware/logging.md](middleware/logging.md) |
-| Sessions & Flash | [middleware/session.md](middleware/session.md) |
 | Static Files | [middleware/static-files.md](middleware/static-files.md) |
 | Rate Limiting | [middleware/rate-limiting.md](middleware/rate-limiting.md) |
 | Content Negotiation | [middleware/content-negotiation.md](middleware/content-negotiation.md) |

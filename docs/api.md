@@ -120,7 +120,7 @@ Interface for immutable HTTP request objects.
 | Method | Signature | Description |
 |--------|-----------|-------------|
 | `create` | `public static function create(): static` | Factory; builds from PHP superglobals (`$_GET`, `$_POST`, `$_SERVER`, `php://input`) |
-| `createFromArrays` | `public static function createFromArrays(array $query = [], array $post = [], array $server = [], array $headers = [], string $body = ''): static` | Factory; builds from explicit arrays (useful for testing) |
+| `createFromArrays` | `public static function createFromArrays(array $query = [], array $post = [], array $server = [], array $headers = [], string $body = '', array $session = [], array $flash = []): static` | Factory; builds from explicit arrays (useful for testing) |
 | `withAttribute` | `public function withAttribute(string $key, mixed $value): static` | Returns clone with the given attribute set |
 | `withoutAttribute` | `public function withoutAttribute(string ...$keys): static` | Returns clone without the named attributes |
 | `getAttribute` | `public function getAttribute(string $key): mixed` | Returns the attribute value, or null |
@@ -135,6 +135,8 @@ Interface for immutable HTTP request objects.
 | `getUri` | `public function getUri(): mixed` | Returns the request URI path (query string stripped, normalized) |
 | `getMethod` | `public function getMethod(): mixed` | Returns the HTTP method string |
 | `getRawBody` | `public function getRawBody(): string` | Returns the raw request body |
+| `getSession` | `public function getSession(): SessionInterface` | Returns the session data as an immutable `PhpSession` object |
+| `getFlash` | `public function getFlash(): SessionInterface` | Returns flash data from the previous request as an immutable `PhpSession` object |
 | `getParsedBody` | `public function getParsedBody(): mixed` | Returns the parsed body (JSON-decoded if Content-Type is `application/json`; cached) |
 
 ### `Request`
@@ -179,7 +181,11 @@ Interface for immutable HTTP response objects.
 | `getHeader` | `public function getHeader(string $name): mixed` | Returns first value for the named header, or null |
 | `getHeaderArray` | `public function getHeaderArray(string $name): array` | Returns all values for the named header |
 | `getHeaders` | `public function getHeaders(): array` | Returns all headers as `[$name => $value[]]` |
-| `send` | `public function send(): void` | Emits headers and body to the client |
+| `withSession` | `public function withSession(SessionInterface $session): static` | Returns clone with session data to persist when `send()` is called |
+| `getSession` | `public function getSession(): ?SessionInterface` | Returns the attached session, or null |
+| `withFlash` | `public function withFlash(array $data): static` | Returns clone with flash data to persist for the next request |
+| `getFlashData` | `public function getFlashData(): ?array` | Returns the attached flash data array, or null |
+| `send` | `public function send(): void` | Writes session/flash data to `$_SESSION`, closes the session, emits headers and body |
 
 ### `Response`
 
@@ -187,7 +193,7 @@ Default implementation. Implements `ResponseInterface`. Uses trait **`HasAttribu
 
 `Response::withStatus` has an optional `$message` parameter (defaults to null; auto-resolved from the built-in `HTTP_STATUS_CODES` constant map).
 
-The `send` method: if `$body` is a `\Closure`, it is invoked (for streaming); otherwise the string is echoed.
+The `send` method: writes session data to `$_SESSION` (if a session was attached via `withSession()`), writes flash data to `$_SESSION['_flash']` (if flash data was attached via `withFlash()`), calls `session_write_close()`, then emits headers and body. If `$body` is a `\Closure`, it is invoked (for streaming); otherwise the string is echoed.
 
 ---
 
@@ -242,25 +248,6 @@ Logs method, URI, status code, and elapsed time for each request.
 | `create` | `public static function create(LoggerInterface $logger): static` | Factory; requires a logger |
 | `__invoke` | `public function __invoke(RequestInterface $request, callable $next): ResponseInterface` | Logs `[date] METHOD /uri STATUS Nms` after response |
 
-### `SessionMiddleware`
-
-Starts a PHP session, attaches read-only session/flash data to the request, and writes back from response attributes.
-
-**Constants:**
-
-| Constant | Value | Description |
-|----------|-------|-------------|
-| `ATTR_SESSION` | `'_pirate_session'` | Request attribute key for the session `PhpSession` |
-| `ATTR_FLASH` | `'_pirate_flash'` | Request attribute key for flash data `PhpSession` |
-| `ATTR_SESSION_WRITES` | `'_pirate_session_writes'` | Response attribute key; array of session values to persist |
-| `ATTR_FLASH_WRITES` | `'_pirate_flash_writes'` | Response attribute key; array of flash values for next request |
-
-| Method | Signature | Description |
-|--------|-----------|-------------|
-| `create` | `public static function create(): static` | Factory |
-| `withCookieParams` | `public function withCookieParams(array $params): static` | Returns clone with merged cookie params (default: `httponly=true, samesite=Lax, secure=false`) |
-| `__invoke` | `public function __invoke(RequestInterface $request, callable $next): ResponseInterface` | Starts session, attaches data, calls next, writes back, closes session |
-
 ### `StaticFileMiddleware`
 
 Serves static files from a directory. Falls through to `$next` if no file matches.
@@ -309,13 +296,15 @@ Renders response data as JSON or HTML based on the `Accept` header.
 
 ### `SessionInterface`
 
-Read-only session data interface.
+Immutable session data interface.
 
 | Method | Signature | Description |
 |--------|-----------|-------------|
 | `get` | `public function get(string $key, mixed $default = null): mixed` | Returns session value, or `$default` |
 | `has` | `public function has(string $key): bool` | Returns whether the key exists |
 | `all` | `public function all(): array` | Returns all session data |
+| `with` | `public function with(string $key, mixed $value): static` | Returns clone with the key set to value |
+| `without` | `public function without(string $key): static` | Returns clone with the key removed |
 
 ### `PhpSession`
 
@@ -327,8 +316,10 @@ Default implementation. Implements `SessionInterface`.
 | `get` | `public function get(string $key, mixed $default = null): mixed` | Returns value or default |
 | `has` | `public function has(string $key): bool` | Checks key existence |
 | `all` | `public function all(): array` | Returns all data |
+| `with` | `public function with(string $key, mixed $value): static` | Returns clone with key set to value |
+| `without` | `public function without(string $key): static` | Returns clone with key removed |
 
-To write session data, set the `SessionMiddleware::ATTR_SESSION_WRITES` attribute on the Response. To write flash data, set `SessionMiddleware::ATTR_FLASH_WRITES`.
+To write session data, use `$request->getSession()->with(...)` to build an updated session, then attach it to the response with `$response->withSession()`. To write flash data, use `$response->withFlash([...])`. See [Sessions & Flash Messages](sessions.md).
 
 ---
 

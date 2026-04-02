@@ -241,9 +241,8 @@ $app = App::create()
     ->withMiddleware(
         ErrorMiddleware::create(),              // 1st: outermost
         LoggingMiddleware::create($logger),     // 2nd
-        SessionMiddleware::create(),            // 3rd
-        RateLimitMiddleware::create(100, 60, '/tmp/ratelimit'),  // 4th
-        StaticFileMiddleware::create(__DIR__ . '/public'),       // 5th
+        RateLimitMiddleware::create(100, 60, '/tmp/ratelimit'),  // 3rd
+        StaticFileMiddleware::create(__DIR__ . '/public'),       // 4th
     )
     ->withRouter($router);
 ```
@@ -254,11 +253,9 @@ $app = App::create()
 
 **LoggingMiddleware second.** It needs to be inside the error handler (so errors are caught) but outside everything else (so it can time the entire request lifecycle). Being second means it logs every request including those that hit rate limits or serve static files.
 
-**SessionMiddleware third.** Sessions need to be started before any handler that reads session data. It must be outside rate limiting so that rate-limited requests do not needlessly start sessions -- but in practice, having sessions available for rate-limited requests is harmless, and session data may be needed by custom auth middleware that runs before rate limiting. Place it here for broad availability.
+**RateLimitMiddleware third.** Rate-limited requests are rejected early, saving the cost of file I/O or database queries.
 
-**RateLimitMiddleware fourth.** It should run after the session is available (in case you want to rate-limit by user ID in a custom variant) but before static file serving and route handlers. Rate-limited requests are rejected early, saving the cost of file I/O or database queries.
-
-**StaticFileMiddleware fifth.** If the request matches a static file, it returns immediately without hitting the router. It should be inside rate limiting so that static file requests count toward the limit. Place it last among the app-level middleware so it acts as a fast exit before routing.
+**StaticFileMiddleware fourth.** If the request matches a static file, it returns immediately without hitting the router. It should be inside rate limiting so that static file requests count toward the limit. Place it last among the app-level middleware so it acts as a fast exit before routing.
 
 **ContentNegotiationMiddleware** is typically added at the router or route level, not app-level, because it is specific to API routes that return structured data.
 
@@ -348,14 +345,13 @@ $app = App::create()
     ->withMiddleware(
         ErrorMiddleware::create(),
         LoggingMiddleware::create($logger),
-        SessionMiddleware::create(),
     )
     ->withRouter($apiRouter, $webRouter);
 ```
 
 In this setup:
 
-- **Every request** passes through ErrorMiddleware, LoggingMiddleware, and SessionMiddleware (app level).
+- **Every request** passes through ErrorMiddleware and LoggingMiddleware (app level).
 - **Requests to `/api/*`** additionally pass through ContentNegotiationMiddleware (router level).
 - **Individual routes** can add their own middleware (route level) via the composition pattern shown above.
 
@@ -365,13 +361,14 @@ This three-level system, combined with immutable route composition, gives you th
 
 ## Built-in Middleware
 
-PiratePHP ships with six middleware classes. Each has its own documentation page:
+PiratePHP ships with five middleware classes. Each has its own documentation page:
 
 | Middleware | Purpose |
 |---|---|
 | [ErrorMiddleware](error.md) | Catches exceptions and returns clean error responses |
 | [LoggingMiddleware](logging.md) | Logs request method, URI, status, and timing |
-| [SessionMiddleware](session.md) | Manages PHP sessions with immutable read/write-back |
 | [StaticFileMiddleware](static-files.md) | Serves static files from a directory |
 | [RateLimitMiddleware](rate-limiting.md) | Per-IP rate limiting with file-based storage |
 | [ContentNegotiationMiddleware](content-negotiation.md) | Transforms data to JSON or HTML based on Accept header |
+
+Note: Sessions are not middleware in PiratePHP. They are built into the Request/Response lifecycle. See [Sessions & Flash Messages](../sessions.md).
