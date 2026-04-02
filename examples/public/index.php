@@ -13,7 +13,6 @@ use thegroovetrain\PiratePHP\PhpRenderer;
 use thegroovetrain\PiratePHP\ErrorMiddleware;
 use thegroovetrain\PiratePHP\LoggingMiddleware;
 use thegroovetrain\PiratePHP\FileLogger;
-use thegroovetrain\PiratePHP\StaticFileMiddleware;
 
 // --- Setup ---
 
@@ -139,8 +138,7 @@ $app = App::create()
     ->withRouter($router)
     ->withMiddleware(
         ErrorMiddleware::create(),
-        LoggingMiddleware::create($logger),
-        StaticFileMiddleware::create(__DIR__)
+        LoggingMiddleware::create($logger)
     );
 
 $app->run();

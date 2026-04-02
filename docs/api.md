@@ -248,19 +248,6 @@ Logs method, URI, status code, and elapsed time for each request.
 | `create` | `public static function create(LoggerInterface $logger): static` | Factory; requires a logger |
 | `__invoke` | `public function __invoke(RequestInterface $request, callable $next): ResponseInterface` | Logs `[date] METHOD /uri STATUS Nms` after response |
 
-### `StaticFileMiddleware`
-
-Serves static files from a directory. Falls through to `$next` if no file matches.
-
-| Method | Signature | Description |
-|--------|-----------|-------------|
-| `create` | `public static function create(string $baseDir, array $mimeTypes = []): static` | Factory; `$baseDir` is the document root, `$mimeTypes` merges with built-in map |
-| `withBaseDir` | `public function withBaseDir(string $baseDir): static` | Returns clone with new base directory |
-| `withMimeTypes` | `public function withMimeTypes(array $mimeTypes): static` | Returns clone with additional MIME type mappings |
-| `__invoke` | `public function __invoke(RequestInterface $request, callable $next): ResponseInterface` | Serves file if found; blocks dotfiles; validates path is within base dir |
-
-Built-in MIME types: `html`, `htm`, `css`, `js`, `json`, `xml`, `txt`, `csv`, `png`, `jpg`, `jpeg`, `gif`, `svg`, `ico`, `webp`, `pdf`, `woff`, `woff2`, `ttf`, `eot`, `mp3`, `mp4`, `webm`, `zip`.
-
 ### `RateLimitMiddleware`
 
 File-based per-IP rate limiting with a fixed time window.

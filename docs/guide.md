@@ -126,7 +126,7 @@ $dashboard = $protectedBase->withPath('/dashboard')->withMethods('GET')
     });
 ```
 
-PiratePHP includes built-in middleware for error handling (`ErrorMiddleware`), logging (`LoggingMiddleware`), rate limiting (`RateLimitMiddleware`), static files (`StaticFileMiddleware`), and content negotiation (`ContentNegotiationMiddleware`). Sessions are built into the Request/Response lifecycle -- see [Sessions & Flash Messages](sessions.md).
+PiratePHP includes built-in middleware for error handling (`ErrorMiddleware`), logging (`LoggingMiddleware`), rate limiting (`RateLimitMiddleware`), and content negotiation (`ContentNegotiationMiddleware`). Sessions are built into the Request/Response lifecycle -- see [Sessions & Flash Messages](sessions.md).
 
 ---
 
@@ -168,7 +168,7 @@ php -S localhost:8080 -t public
 
 Open `http://localhost:8080` in your browser.
 
-The `examples/` directory in the PiratePHP repository contains a complete working application demonstrating routes, middleware, templates, sessions, and static files.
+The `examples/` directory in the PiratePHP repository contains a complete working application demonstrating routes, middleware, templates, and sessions.
 
 ---
 

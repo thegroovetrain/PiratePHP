@@ -242,7 +242,6 @@ $app = App::create()
         ErrorMiddleware::create(),              // 1st: outermost
         LoggingMiddleware::create($logger),     // 2nd
         RateLimitMiddleware::create(100, 60, '/tmp/ratelimit'),  // 3rd
-        StaticFileMiddleware::create(__DIR__ . '/public'),       // 4th
     )
     ->withRouter($router);
 ```
@@ -251,11 +250,9 @@ $app = App::create()
 
 **ErrorMiddleware first.** It wraps everything in a try/catch. If any middleware or handler throws an exception, ErrorMiddleware catches it and returns a clean 500 response. If it were not first, an exception in an outer middleware would bypass it entirely and produce an ugly PHP error.
 
-**LoggingMiddleware second.** It needs to be inside the error handler (so errors are caught) but outside everything else (so it can time the entire request lifecycle). Being second means it logs every request including those that hit rate limits or serve static files.
+**LoggingMiddleware second.** It needs to be inside the error handler (so errors are caught) but outside everything else (so it can time the entire request lifecycle). Being second means it logs every request including those that hit rate limits.
 
 **RateLimitMiddleware third.** Rate-limited requests are rejected early, saving the cost of file I/O or database queries.
-
-**StaticFileMiddleware fourth.** If the request matches a static file, it returns immediately without hitting the router. It should be inside rate limiting so that static file requests count toward the limit. Place it last among the app-level middleware so it acts as a fast exit before routing.
 
 **ContentNegotiationMiddleware** is typically added at the router or route level, not app-level, because it is specific to API routes that return structured data.
 
@@ -361,13 +358,12 @@ This three-level system, combined with immutable route composition, gives you th
 
 ## Built-in Middleware
 
-PiratePHP ships with five middleware classes. Each has its own documentation page:
+PiratePHP ships with four middleware classes. Each has its own documentation page:
 
 | Middleware | Purpose |
 |---|---|
 | [ErrorMiddleware](error.md) | Catches exceptions and returns clean error responses |
 | [LoggingMiddleware](logging.md) | Logs request method, URI, status, and timing |
-| [StaticFileMiddleware](static-files.md) | Serves static files from a directory |
 | [RateLimitMiddleware](rate-limiting.md) | Per-IP rate limiting with file-based storage |
 | [ContentNegotiationMiddleware](content-negotiation.md) | Transforms data to JSON or HTML based on Accept header |
 

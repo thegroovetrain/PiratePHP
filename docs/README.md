@@ -24,7 +24,6 @@ See the [Middleware Overview](middleware/README.md) for how the pipeline works a
 |-----------|----------|
 | Error Handling | [middleware/error.md](middleware/error.md) |
 | Logging | [middleware/logging.md](middleware/logging.md) |
-| Static Files | [middleware/static-files.md](middleware/static-files.md) |
 | Rate Limiting | [middleware/rate-limiting.md](middleware/rate-limiting.md) |
 | Content Negotiation | [middleware/content-negotiation.md](middleware/content-negotiation.md) |
 
@@ -45,7 +44,7 @@ See the [Middleware Overview](middleware/README.md) for how the pipeline works a
 
 ## Example App
 
-A working demo app lives in the [examples/](../examples/) directory. It covers routing, form handling, flash messages, JSON APIs, sessions, static files, named routes, and template rendering.
+A working demo app lives in the [examples/](../examples/) directory. It covers routing, form handling, flash messages, JSON APIs, sessions, named routes, and template rendering.
 
 ```bash
 cd examples

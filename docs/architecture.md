@@ -59,7 +59,6 @@ This pattern appears in every component:
 | `Response`                     | `withStatus()`, `withBody()`, `withHeader()`, `withAddedHeader()`, `withHeaders()`, `withoutHeaders()`, `withAttribute()`, `withoutAttribute()`, `withSession()`, `withFlash()` |
 | `PhpSession`                   | `with()`, `without()`                                                |
 | `ErrorMiddleware`              | `withErrorHandler()`                                                 |
-| `StaticFileMiddleware`         | `withBaseDir()`, `withMimeTypes()`                                   |
 | `RateLimitMiddleware`          | `withMaxRequests()`, `withWindowSeconds()`, `withStoragePath()`      |
 | `ContentNegotiationMiddleware` | `withRenderer()`, `withDefaultTemplate()`                            |
 | `FileLogger`                   | `withFilePath()`                                                     |
@@ -106,7 +105,7 @@ $postsRoute = $apiRoute->withPath('/posts')->withMethods('GET')
          v
 +----------------------------+
 |  App-level Middleware      |  e.g. ErrorMiddleware, LoggingMiddleware,
-|  (processed recursively)  |       RateLimitMiddleware, StaticFileMiddleware
+|  (processed recursively)  |       RateLimitMiddleware
 |                            |
 |  Each calls $next($req)   |
 |  to pass control forward  |
@@ -291,8 +290,8 @@ syntax.
 |                     MIDDLEWARE CLASSES                             |
 |  (all are invokable: __invoke($request, $next))                  |
 |                                                                   |
-|  ErrorMiddleware              StaticFileMiddleware                |
-|  RateLimitMiddleware          LoggingMiddleware                   |
+|  ErrorMiddleware              LoggingMiddleware                   |
+|  RateLimitMiddleware          ContentNegotiationMiddleware        |
 |  ContentNegotiationMiddleware                                     |
 +------------------------------------------------------------------+
 
@@ -384,7 +383,6 @@ instance, so each level runs its own pipeline independently:
 |  - Error handling                                 |
 |  - Logging                                        |
 |  - Rate limiting                                  |
-|  - Static file serving                            |
 |                                                   |
 |  +----------------------------------------------+|
 |  |  ROUTER MIDDLEWARE                            ||
@@ -507,30 +505,7 @@ return Response::create()
 
 ### Path traversal protection
 
-Both `StaticFileMiddleware` and `PhpRenderer` use the same defense against path traversal
-attacks: **realpath validation**.
-
-In `StaticFileMiddleware` (src/StaticFileMiddleware.php, lines 81-91):
-
-```php
-$realBase = realpath($this->baseDir);
-$realFile = realpath($filePath);
-
-if ($realBase === false || $realFile === false) {
-    return $next($request);
-}
-
-if (!str_starts_with($realFile, $realBase)) {
-    return $next($request);
-}
-```
-
-This resolves all `../`, symlinks, and encoding tricks to their actual filesystem paths,
-then verifies the resolved file is actually within the intended base directory. A request
-for `/static/../../../etc/passwd` would resolve to `/etc/passwd`, which would fail the
-`str_starts_with($realFile, $realBase)` check.
-
-`PhpRenderer` (src/PhpRenderer.php, lines 40-45) uses the identical pattern:
+`PhpRenderer` uses **realpath validation** as its defense against path traversal attacks:
 
 ```php
 $realBase = realpath($this->basePath);
@@ -541,9 +516,8 @@ if ($realBase === false || $realFile === false || !str_starts_with($realFile, $r
 }
 ```
 
-Additionally, `StaticFileMiddleware` blocks dotfiles (lines 73-78): any path segment
-starting with `.` (like `.htaccess`, `.env`, `.git`) causes the middleware to skip the
-file and pass through to the next handler.
+This resolves all `../`, symlinks, and encoding tricks to their actual filesystem paths,
+then verifies the resolved file is actually within the intended base directory.
 
 ### Session cookie defaults
 
@@ -647,7 +621,6 @@ All tests live in `tests/unit/` and follow the pattern `{ClassName}Test.php`:
 | `MiddlewareTest.php`              | HasMiddleware trait pipeline behavior        |
 | `RequestSessionTest.php`          | Request session/flash reads                 |
 | `ResponseSessionTest.php`        | Response session/flash writes                |
-| `StaticFileMiddlewareTest.php`    | Static file serving, path traversal         |
 | `ErrorMiddlewareTest.php`         | Error catching, custom handlers             |
 | `RateLimitMiddlewareTest.php`     | Rate limiting behavior                      |
 | `ContentNegotiationTest.php`      | JSON vs HTML response based on Accept       |
@@ -724,12 +697,12 @@ convenience method returns the first value; `getHeaderArray()` returns all value
 **Decision:** `Response::withBody()` accepts `string|callable`. When the body is a
 `Closure`, `Response::send()` invokes it instead of echoing a string.
 
-**Why:** This avoids loading large files into memory. `StaticFileMiddleware` uses this
-to stream files (src/StaticFileMiddleware.php, lines 104-106):
+**Why:** This avoids loading large responses into memory. For example, a handler can
+stream a file directly to the output buffer:
 
 ```php
-->withBody(function () use ($realFile) {
-    readfile($realFile);
+->withBody(function () use ($filePath) {
+    readfile($filePath);
 })
 ```
 
