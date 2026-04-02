@@ -15,6 +15,8 @@ class Request implements RequestInterface
     private string $rawBody;
     private mixed $parsedBody;
     private bool $parsedBodyCached;
+    private SessionInterface $session;
+    private SessionInterface $flash;
 
 
     const HTTP_CONNECT = 'CONNECT';
@@ -30,8 +32,21 @@ class Request implements RequestInterface
 
     public static function create():static
     {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_set_cookie_params([
+                'httponly' => true,
+                'samesite' => 'Lax',
+                'secure' => isset($_SERVER['HTTPS']),
+            ]);
+            session_start();
+        }
         $rawBody = file_get_contents('php://input') ?: '';
-        return new static($_GET, $_POST, $_SERVER, [], $rawBody);
+        $instance = new static($_GET, $_POST, $_SERVER, [], $rawBody);
+        $instance->session = new PhpSession($_SESSION ?? []);
+        $flashData = $_SESSION['_flash'] ?? [];
+        unset($_SESSION['_flash']);
+        $instance->flash = new PhpSession($flashData);
+        return $instance;
     }
 
 
@@ -40,10 +55,15 @@ class Request implements RequestInterface
         array $post = [],
         array $server = [],
         array $headers = [],
-        string $body = ''
+        string $body = '',
+        array $session = [],
+        array $flash = []
     ):static
     {
-        return new static($query, $post, $server, $headers, $body);
+        $instance = new static($query, $post, $server, $headers, $body);
+        $instance->session = new PhpSession($session);
+        $instance->flash = new PhpSession($flash);
+        return $instance;
     }
 
 
@@ -61,6 +81,8 @@ class Request implements RequestInterface
         $this->rawBody = $body;
         $this->parsedBodyCached = false;
         $this->parsedBody = null;
+        $this->session = new PhpSession();
+        $this->flash = new PhpSession();
 
         if (!empty($headers)) {
             $normalized = [];
@@ -171,6 +193,18 @@ class Request implements RequestInterface
     public function getRawBody():string
     {
         return $this->rawBody;
+    }
+
+
+    public function getSession():SessionInterface
+    {
+        return $this->session;
+    }
+
+
+    public function getFlash():SessionInterface
+    {
+        return $this->flash;
     }
 
 

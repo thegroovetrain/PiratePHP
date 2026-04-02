@@ -128,6 +128,36 @@ interface ResponseInterface
     public function getHeaders():array;
 
     /**
+     * returns a clone with the given session data to write back
+     *
+     * @param SessionInterface  $session
+     * @return static
+     */
+    public function withSession(SessionInterface $session):static;
+
+    /**
+     * gets the session data to write back, or null if not set
+     *
+     * @return SessionInterface|null
+     */
+    public function getSession():?SessionInterface;
+
+    /**
+     * returns a clone with flash data for the next request
+     *
+     * @param array     $data
+     * @return static
+     */
+    public function withFlash(array $data):static;
+
+    /**
+     * gets the flash data, or null if not set
+     *
+     * @return array|null
+     */
+    public function getFlashData():?array;
+
+    /**
      * sends the current response
      *
      * @return void

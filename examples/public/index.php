@@ -13,7 +13,6 @@ use thegroovetrain\PiratePHP\PhpRenderer;
 use thegroovetrain\PiratePHP\ErrorMiddleware;
 use thegroovetrain\PiratePHP\LoggingMiddleware;
 use thegroovetrain\PiratePHP\FileLogger;
-use thegroovetrain\PiratePHP\SessionMiddleware;
 use thegroovetrain\PiratePHP\StaticFileMiddleware;
 
 // --- Setup ---
@@ -46,17 +45,15 @@ $formGetRoute = Route::create()
     ->withMethods('GET')
     ->withName('form')
     ->withHandler(function (RequestInterface $request) use ($renderer): ResponseInterface {
-        $flash = $request->getAttribute('_pirate_flash');
+        $flash = $request->getFlash();
         $data = [];
-        if ($flash !== null) {
-            $message = $flash->get('message');
-            $error = $flash->get('error');
-            if ($message !== null) {
-                $data['flash_message'] = $message;
-            }
-            if ($error !== null) {
-                $data['flash_error'] = $error;
-            }
+        $message = $flash->get('message');
+        $error = $flash->get('error');
+        if ($message !== null) {
+            $data['flash_message'] = $message;
+        }
+        if ($error !== null) {
+            $data['flash_error'] = $error;
         }
         $html = renderPage($renderer, 'form.php', $data, 'PiratePHP Demo - Form');
         return Response::create()->withBody($html)->withHeader('Content-Type', 'text/html');
@@ -72,13 +69,13 @@ $formPostRoute = Route::create()
         // Simple validation
         if (trim($name) === '' || trim($email) === '') {
             return Response::redirect('/form')
-                ->withAttribute('_pirate_flash_writes', [
+                ->withFlash([
                     'error' => 'Name and email are required.',
                 ]);
         }
 
         return Response::redirect('/form')
-            ->withAttribute('_pirate_flash_writes', [
+            ->withFlash([
                 'message' => "Thanks, {$name}! We received your submission.",
             ]);
     });
@@ -143,7 +140,6 @@ $app = App::create()
     ->withMiddleware(
         ErrorMiddleware::create(),
         LoggingMiddleware::create($logger),
-        SessionMiddleware::create(),
         StaticFileMiddleware::create(__DIR__)
     );
 

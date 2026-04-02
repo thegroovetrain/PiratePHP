@@ -30,4 +30,20 @@ class PhpSession implements SessionInterface
     {
         return $this->data;
     }
+
+
+    public function with(string $key, mixed $value): static
+    {
+        $new = clone $this;
+        $new->data[$key] = $value;
+        return $new;
+    }
+
+
+    public function without(string $key): static
+    {
+        $new = clone $this;
+        unset($new->data[$key]);
+        return $new;
+    }
 }

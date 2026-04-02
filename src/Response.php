@@ -87,6 +87,8 @@ class Response implements ResponseInterface
     private array $headers;
     private int $code;
     private string | null $message;
+    private ?SessionInterface $session = null;
+    private ?array $flashData = null;
 
 
     private function __construct()
@@ -229,8 +231,48 @@ class Response implements ResponseInterface
     }
 
 
+    public function withSession(SessionInterface $session):static
+    {
+        $new = clone $this;
+        $new->session = $session;
+        return $new;
+    }
+
+
+    public function getSession():?SessionInterface
+    {
+        return $this->session;
+    }
+
+
+    public function withFlash(array $data):static
+    {
+        $new = clone $this;
+        $new->flashData = $data;
+        return $new;
+    }
+
+
+    public function getFlashData():?array
+    {
+        return $this->flashData;
+    }
+
+
     public function send():void
     {
+        // Write session data back to $_SESSION
+        if ($this->session !== null && session_status() === PHP_SESSION_ACTIVE) {
+            $_SESSION = $this->session->all();
+        }
+        if ($this->flashData !== null && session_status() === PHP_SESSION_ACTIVE) {
+            $_SESSION['_flash'] = $this->flashData;
+        }
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
+        // Send headers and body
         if(!headers_sent()) {
             foreach($this->headers as $name => $values) {
                 foreach ($values as $value) {

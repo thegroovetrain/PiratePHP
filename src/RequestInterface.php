@@ -155,4 +155,18 @@ interface RequestInterface
      * @return mixed
      */
     public function getParsedBody():mixed;
+
+    /**
+     * get the session data for this request
+     *
+     * @return SessionInterface
+     */
+    public function getSession():SessionInterface;
+
+    /**
+     * get the flash data from the previous request
+     *
+     * @return SessionInterface
+     */
+    public function getFlash():SessionInterface;
 }

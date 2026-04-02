@@ -10,4 +10,8 @@ interface SessionInterface
     public function has(string $key): bool;
 
     public function all(): array;
+
+    public function with(string $key, mixed $value): static;
+
+    public function without(string $key): static;
 }

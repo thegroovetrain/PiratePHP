@@ -17,7 +17,7 @@
     <ul>
         <li>ErrorMiddleware — catches exceptions, returns 500</li>
         <li>LoggingMiddleware — logs requests to <code>examples/logs/app.log</code></li>
-        <li>SessionMiddleware — session and flash message support</li>
+        <li>Sessions &amp; flash messages — built into Request/Response</li>
         <li>StaticFileMiddleware — serves <code>/css/style.css</code></li>
     </ul>
 </div>
